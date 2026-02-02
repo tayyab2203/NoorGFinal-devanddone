@@ -76,7 +76,7 @@ function QuickEditRow({ row }: { row: InventoryVariantItem }) {
         </span>
       </td>
       <td className="p-4">
-        <a href={ADMIN_ROUTES.productEdit(row.productId)} className="text-sm font-medium hover:underline" style={{ color: COLORS.goldAccent }}>Edit product</a>
+        <a href={ADMIN_ROUTES.productEdit(row.productId, product?.categoryId)} className="text-sm font-medium hover:underline" style={{ color: COLORS.goldAccent }}>Edit product</a>
       </td>
     </tr>
   );

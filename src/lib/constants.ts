@@ -28,6 +28,9 @@ export const ADMIN_ROUTES = {
   categoryEdit: (id: string) => `/admin/categories/${id}/edit`,
   categoryProductNew: (categoryId: string) => `/admin/categories/${categoryId}/products/new`,
   categoryProductEdit: (categoryId: string, productId: string) => `/admin/categories/${categoryId}/products/${productId}/edit`,
+  /** Edit product - requires categoryId. Falls back to categories list if not provided. */
+  productEdit: (productId: string, categoryId?: string) =>
+    categoryId ? `/admin/categories/${categoryId}/products/${productId}/edit` : "/admin/categories",
   orders: "/admin/orders",
   orderDetail: (id: string) => `/admin/orders/${id}`,
   customers: "/admin/customers",
