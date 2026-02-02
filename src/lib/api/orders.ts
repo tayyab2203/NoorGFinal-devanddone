@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient, type UseQueryOptions, type UseMutationOptions } from "react-query";
 import { apiClient } from "./client";
-import { getApiErrorMessage } from "./types";
+import { getApiErrorMessage, unwrapData } from "./types";
 import { cartKeys } from "./cart";
 import type { Order, Address } from "@/types";
 
@@ -17,25 +17,49 @@ export interface OrderResponse extends Order {
 
 /** Create a new order */
 export async function createOrder(orderData: CreateOrderData): Promise<OrderResponse> {
-  const { data } = await apiClient.post<OrderResponse>("/api/orders", orderData);
+  const res = await apiClient.post<{ data?: OrderResponse } | OrderResponse>(
+    "/api/orders",
+    orderData
+  );
+  const data = unwrapData(res.data, null as OrderResponse | null);
   if (!data) throw new Error("Failed to create order");
   return data;
 }
 
 /** Fetch current user's orders */
 export async function getOrders(): Promise<OrderResponse[]> {
-  const { data } = await apiClient.get<OrderResponse[]>("/api/orders");
+  const res = await apiClient.get<{ data?: OrderResponse[] } | OrderResponse[]>("/api/orders");
+  const data = unwrapData(res.data, []);
   return Array.isArray(data) ? data : [];
 }
 
 /** Fetch a single order by ID */
 export async function getOrderById(orderId: string): Promise<OrderResponse | null> {
   try {
-    const { data } = await apiClient.get<OrderResponse>(`/api/orders/${orderId}`);
-    return data ?? null;
+    const res = await apiClient.get<{ data?: OrderResponse } | OrderResponse>(
+      `/api/orders/${orderId}`
+    );
+    return unwrapData(res.data, null as OrderResponse | null);
   } catch {
     return null;
   }
+}
+
+/** Confirm payment (mock) */
+export async function confirmPayment(orderId: string): Promise<{ confirmed: boolean; orderId: string }> {
+  const res = await apiClient.post<{ data?: { confirmed: boolean; orderId: string } } | { confirmed: boolean; orderId: string }>(
+    "/api/payments/confirm",
+    { orderId }
+  );
+  const data = unwrapData(res.data, { confirmed: false, orderId: "" });
+  return data;
+}
+
+/** Fetch all orders (admin only) */
+export async function getAdminOrders(): Promise<OrderResponse[]> {
+  const res = await apiClient.get<{ data?: OrderResponse[] } | OrderResponse[]>("/api/admin/orders");
+  const data = unwrapData(res.data, []);
+  return Array.isArray(data) ? data : [];
 }
 
 // ---------------------------------------------------------------------------
@@ -46,6 +70,7 @@ const ordersKeys = {
   all: ["orders"] as const,
   list: () => [...ordersKeys.all, "list"] as const,
   detail: (id: string) => [...ordersKeys.all, "detail", id] as const,
+  adminList: () => [...ordersKeys.all, "admin"] as const,
 };
 
 export function useOrders(
@@ -86,6 +111,34 @@ export function useCreateOrder(
       queryClient.invalidateQueries(ordersKeys.all);
       queryClient.invalidateQueries(cartKeys.all);
     },
+    ...options,
+  });
+}
+
+/** Update order (admin: orderStatus, paymentStatus) */
+export async function updateOrder(
+  orderId: string,
+  payload: { orderStatus?: string; paymentStatus?: string }
+): Promise<OrderResponse> {
+  const res = await apiClient.patch<{ data?: OrderResponse } | OrderResponse>(
+    `/api/orders/${orderId}`,
+    payload
+  );
+  const data = unwrapData(res.data, null as OrderResponse | null);
+  if (!data) throw new Error("Failed to update order");
+  return data;
+}
+
+/** Admin: fetch all orders */
+export function useAdminOrders(
+  options?: Omit<
+    UseQueryOptions<OrderResponse[], Error, OrderResponse[], ReturnType<typeof ordersKeys.adminList>>,
+    "queryKey" | "queryFn"
+  >
+) {
+  return useQuery({
+    queryKey: ordersKeys.adminList(),
+    queryFn: getAdminOrders,
     ...options,
   });
 }

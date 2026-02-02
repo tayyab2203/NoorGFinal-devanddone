@@ -17,8 +17,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { useState } from "react";
-import { MOCK_ORDERS } from "@/lib/mockOrders";
-import { MOCK_PRODUCTS } from "@/lib/mockData";
+import { useOrderById } from "@/lib/api/orders";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/utils";
 import { cn } from "@/lib/utils";
@@ -194,8 +193,25 @@ export default function OrderDetailPage() {
   const params = useParams();
   const router = useRouter();
   const id = typeof params.id === "string" ? params.id : "";
-  const order = MOCK_ORDERS.find((o) => o.id === id);
+  const { data: order, isLoading } = useOrderById(id || null);
   const [copied, setCopied] = useState(false);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <Link
+          href={`${ROUTES.account}/orders`}
+          className="inline-flex items-center gap-2 text-sm font-medium text-[#C4A747] hover:underline"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Orders
+        </Link>
+        <div className="rounded-xl border border-[#eee] bg-white p-12 text-center text-[#333333]/70">
+          Loading order...
+        </div>
+      </div>
+    );
+  }
 
   if (!order) {
     return (
@@ -331,40 +347,33 @@ export default function OrderDetailPage() {
             Order Items ({order.items.length})
           </h3>
           <div className="mt-4 space-y-4">
-            {order.items.map((item, i) => {
-              const product = MOCK_PRODUCTS.find((p) => p.id === item.productId);
-              const variant = product?.variants.find(
-                (v) => v.variantSKU === item.variantSKU
-              );
-
-              return (
-                <div
-                  key={i}
-                  className="flex gap-4 border-b border-[#eee] pb-4 last:border-0 last:pb-0"
-                >
-                  <div className="relative h-20 w-16 shrink-0 overflow-hidden rounded-lg bg-muted">
-                    <Image
-                      src={product?.images[0]?.url ?? "/placeholder.svg"}
-                      alt={product?.name ?? "Product"}
-                      fill
-                      className="object-cover"
-                      sizes="64px"
-                    />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium text-[#333333]">
-                      {product?.name ?? "Product"}
-                    </p>
-                    <p className="text-sm text-[#333333]/60">
-                      {variant?.size} / {variant?.color} × {item.quantity}
-                    </p>
-                  </div>
-                  <p className="shrink-0 font-semibold text-[#333333]">
-                    {formatPrice(item.unitPrice * item.quantity)}
+            {order.items.map((item, i) => (
+              <div
+                key={i}
+                className="flex gap-4 border-b border-[#eee] pb-4 last:border-0 last:pb-0"
+              >
+                <div className="relative h-20 w-16 shrink-0 overflow-hidden rounded-lg bg-muted">
+                  <Image
+                    src="/placeholder.svg"
+                    alt="Product"
+                    fill
+                    className="object-cover"
+                    sizes="64px"
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium text-[#333333]">
+                    Item ({item.variantSKU})
+                  </p>
+                  <p className="text-sm text-[#333333]/60">
+                    Qty: {item.quantity}
                   </p>
                 </div>
-              );
-            })}
+                <p className="shrink-0 font-semibold text-[#333333]">
+                  {formatPrice(item.unitPrice * item.quantity)}
+                </p>
+              </div>
+            ))}
           </div>
 
           {/* Totals */}

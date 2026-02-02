@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
-import { MOCK_PRODUCTS, MOCK_COLLECTIONS, COLLECTION_PRODUCT_IDS } from "@/lib/mockData";
-import type { Product } from "@/types";
+import mongoose from "mongoose";
+import { connectDB } from "@/lib/db/mongodb";
+import { Collection, Product } from "@/lib/db/models";
+import { PRODUCT_STATUS } from "@/lib/constants";
+import type { Product as ProductType } from "@/types";
 
 export interface CollectionWithProducts {
   collection: {
@@ -11,27 +14,62 @@ export interface CollectionWithProducts {
     image: string;
     productCount: number;
   };
-  products: Product[];
+  products: ProductType[];
+}
+
+function toProductJSON(doc: { _id: { toString: () => string }; [k: string]: unknown }): ProductType {
+  const o = doc as Record<string, unknown>;
+  return {
+    id: (o._id as { toString: () => string }).toString(),
+    name: o.name as string,
+    slug: o.slug as string,
+    categoryId: (o.categoryId as string) ?? "",
+    price: o.price as number,
+    salePrice: (o.salePrice as number | null) ?? null,
+    material: (o.material as string) ?? "",
+    description: (o.description as string) ?? "",
+    rating: (o.rating as number) ?? 0,
+    SKU: o.SKU as string,
+    status: (o.status as ProductType["status"]) ?? PRODUCT_STATUS.ACTIVE,
+    images: (o.images as ProductType["images"]) ?? [],
+    variants: (o.variants as ProductType["variants"]) ?? [],
+  };
 }
 
 export async function GET(
   _request: Request,
-  { params }: { params: Promise<{ slug: string }> }
+  context: { params: Promise<{ slug: string }> }
 ) {
-  const { slug } = await params;
-  const coll = MOCK_COLLECTIONS.find((c) => c.slug === slug);
-  if (!coll) return NextResponse.json({ error: "Collection not found" }, { status: 404 });
+  try {
+    await connectDB();
+    const { slug } = await context.params;
+    const coll = await Collection.findOne({ slug }).lean();
+    if (!coll) {
+      return NextResponse.json({ error: "Collection not found" }, { status: 404 });
+    }
 
-  const ids = COLLECTION_PRODUCT_IDS[slug] ?? [];
-  const byId = new Map(MOCK_PRODUCTS.map((p) => [p.id, p]));
-  const products = ids.map((id) => byId.get(id)).filter(Boolean) as Product[];
+    const ids = (coll.productIds ?? []) as mongoose.Types.ObjectId[];
+    const products = await Product.find({
+      _id: { $in: ids },
+      status: PRODUCT_STATUS.ACTIVE,
+    }).lean();
 
-  const payload: CollectionWithProducts = {
-    collection: {
-      ...coll,
-      productCount: products.length,
-    },
-    products,
-  };
-  return NextResponse.json(payload);
+    const payload: CollectionWithProducts = {
+      collection: {
+        id: (coll._id as mongoose.Types.ObjectId).toString(),
+        name: coll.name,
+        slug: coll.slug,
+        description: coll.description ?? "",
+        image: coll.image ?? "",
+        productCount: products.length,
+      },
+      products: products.map((p) => toProductJSON(p as Parameters<typeof toProductJSON>[0])),
+    };
+    return NextResponse.json(payload);
+  } catch (e) {
+    console.error("[api/collections/[slug]] GET:", e);
+    const status = isDbUnavailableError(e) ? 503 : 500;
+    const message = isDbUnavailableError(e) ? "Database unavailable" : "Failed to fetch collection";
+    return NextResponse.json({ error: message }, { status });
+  }
 }

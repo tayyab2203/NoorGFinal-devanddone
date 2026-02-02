@@ -20,6 +20,23 @@ export const ROUTES = {
   checkout: "/checkout",
 } as const;
 
+export const ADMIN_ROUTES = {
+  dashboard: "/admin",
+  categories: "/admin/categories",
+  categoriesNew: "/admin/categories/new",
+  categoryDetail: (id: string) => `/admin/categories/${id}`,
+  categoryEdit: (id: string) => `/admin/categories/${id}/edit`,
+  categoryProductNew: (categoryId: string) => `/admin/categories/${categoryId}/products/new`,
+  categoryProductEdit: (categoryId: string, productId: string) => `/admin/categories/${categoryId}/products/${productId}/edit`,
+  orders: "/admin/orders",
+  orderDetail: (id: string) => `/admin/orders/${id}`,
+  customers: "/admin/customers",
+  customerDetail: (id: string) => `/admin/customers/${id}`,
+  inventory: "/admin/inventory",
+  payments: "/admin/payments",
+  settings: "/admin/settings",
+} as const;
+
 export const COLORS = {
   primaryDark: "#333333",
   goldAccent: "#C4A747",
@@ -52,6 +69,15 @@ export const PAYMENT_STATUS = {
 } as const;
 
 export type PaymentStatus = (typeof PAYMENT_STATUS)[keyof typeof PAYMENT_STATUS];
+
+/** Pakistani payment methods (mock flow) */
+export const PAYMENT_METHOD = {
+  EASYPAISA: "EASYPAISA",
+  JAZZCASH: "JAZZCASH",
+  BANK_TRANSFER: "BANK_TRANSFER",
+} as const;
+
+export type PaymentMethod = (typeof PAYMENT_METHOD)[keyof typeof PAYMENT_METHOD];
 
 export const PRODUCT_STATUS = {
   DRAFT: "DRAFT",

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSession } from "next-auth/react";
 import {
   Minus,
   Plus,
@@ -19,6 +20,14 @@ import {
   X,
 } from "lucide-react";
 import { useCartStore, type CartStoreItem } from "@/store/cartStore";
+import {
+  useCart,
+  useUpdateCartItem,
+  useRemoveFromCart,
+  mergeCart,
+  type CartItemResponse,
+} from "@/lib/api/cart";
+import { useQueryClient } from "react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatPrice } from "@/lib/utils";
@@ -28,6 +37,17 @@ import { ROUTES } from "@/lib/constants";
 const GOLD = "#C4A747";
 const CREAM = "#F5F3EE";
 const SAGE = "#5BA383";
+
+/** Map API cart item to CartStoreItem shape for shared UI */
+function toCartStoreItem(item: CartItemResponse): CartStoreItem | null {
+  if (!item.product) return null;
+  return {
+    id: item.id,
+    product: item.product,
+    variantSKU: item.variantSKU,
+    quantity: item.quantity,
+  };
+}
 
 function CartItemCard({
   item,
@@ -363,7 +383,9 @@ function EmptyCart() {
 }
 
 export default function CartPage() {
-  const { items, updateQuantity, removeFromCart, getCartTotal, getCartItemCount } =
+  const { data: session, status } = useSession();
+  const queryClient = useQueryClient();
+  const { items: zustandItems, updateQuantity, removeFromCart, getCartTotal, getCartItemCount, clearCart: clearZustandCart } =
     useCartStore();
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [hasMounted, setHasMounted] = useState(false);
@@ -371,26 +393,79 @@ export default function CartPage() {
   const [promoDiscount, setPromoDiscount] = useState(0);
   const [isApplyingPromo, setIsApplyingPromo] = useState(false);
   const [promoError, setPromoError] = useState<string | null>(null);
+  const [mergeDone, setMergeDone] = useState(false);
+
+  const isAuthenticated = status === "authenticated";
+  const { data: apiCart, isLoading: cartLoading } = useCart({ enabled: isAuthenticated });
+  const updateCartItemMutation = useUpdateCartItem();
+  const removeFromCartMutation = useRemoveFromCart();
 
   useEffect(() => {
     setHasMounted(true);
   }, []);
 
+  // Merge guest cart into API cart on login (once)
+  useEffect(() => {
+    if (!isAuthenticated || mergeDone || zustandItems.length === 0) return;
+    setMergeDone(true);
+    const itemsToMerge = zustandItems.map((i) => ({
+      productId: i.product.id,
+      variantSKU: i.variantSKU,
+      quantity: i.quantity,
+    }));
+    mergeCart(itemsToMerge)
+      .then(() => {
+        clearZustandCart();
+        queryClient.invalidateQueries({ queryKey: ["cart"] });
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once when authenticated with guest items
+  }, [isAuthenticated, mergeDone]);
+
+  const cartItemsFromApi = useMemo(() => {
+    if (!apiCart?.items) return [];
+    return apiCart.items.map(toCartStoreItem).filter((i): i is CartStoreItem => i != null);
+  }, [apiCart?.items]);
+
+  const cartItems = isAuthenticated ? cartItemsFromApi : (hasMounted ? zustandItems : []);
+  const subtotal = isAuthenticated
+    ? cartItems.reduce(
+        (sum, i) => sum + (i.product.salePrice ?? i.product.price) * i.quantity,
+        0
+      )
+    : hasMounted
+      ? getCartTotal()
+      : 0;
+  const itemCount = cartItems.reduce((sum, i) => sum + i.quantity, 0);
+
   const handleUpdateQty = (itemId: string, qty: number) => {
     setUpdatingId(itemId);
-    updateQuantity(itemId, qty);
-    setTimeout(() => setUpdatingId(null), 300);
+    if (isAuthenticated) {
+      updateCartItemMutation.mutate(
+        { itemId, quantity: qty },
+        { onSettled: () => setTimeout(() => setUpdatingId(null), 300) }
+      );
+    } else {
+      updateQuantity(itemId, qty);
+      setTimeout(() => setUpdatingId(null), 300);
+    }
+  };
+
+  const handleRemove = (itemId: string) => {
+    if (isAuthenticated) {
+      removeFromCartMutation.mutate(itemId);
+    } else {
+      removeFromCart(itemId);
+    }
   };
 
   const handleApplyPromo = (code: string) => {
     setIsApplyingPromo(true);
     setPromoError(null);
-
-    // Simulate promo validation
     setTimeout(() => {
       if (code === "SAVE10") {
         setPromoCode(code);
-        setPromoDiscount(Math.round(getCartTotal() * 0.1));
+        setPromoDiscount(Math.round(subtotal * 0.1));
       } else if (code === "FLAT500") {
         setPromoCode(code);
         setPromoDiscount(500);
@@ -406,11 +481,7 @@ export default function CartPage() {
     setPromoDiscount(0);
   };
 
-  const subtotal = hasMounted ? getCartTotal() : 0;
-  const itemCount = hasMounted ? getCartItemCount() : 0;
-  const cartItems = hasMounted ? items : [];
-
-  if (hasMounted && items.length === 0) {
+  if (hasMounted && cartItems.length === 0 && !cartLoading) {
     return <EmptyCart />;
   }
 
@@ -453,7 +524,7 @@ export default function CartPage() {
                   key={item.id}
                   item={item}
                   onUpdateQty={handleUpdateQty}
-                  onRemove={removeFromCart}
+                  onRemove={handleRemove}
                   isUpdating={updatingId}
                 />
               ))}

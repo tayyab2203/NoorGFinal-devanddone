@@ -11,3 +11,14 @@ export function formatPrice(amount: number, currency = "USD"): string {
     currency,
   }).format(amount);
 }
+
+/** Generate URL-safe slug from string (e.g. for product slug) */
+export function slugify(text: string): string {
+  return text
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^\w-]+/g, "")
+    .replace(/--+/g, "-")
+    .replace(/^-|-$/g, "") || "product";
+}

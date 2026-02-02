@@ -41,8 +41,17 @@ const sectionFade = {
 
 async function fetchProducts(): Promise<Product[]> {
   const res = await fetch("/api/products");
-  if (!res.ok) throw new Error("Failed to fetch");
-  return res.json();
+  if (!res.ok) throw new Error("Failed to fetch products");
+  const contentType = res.headers.get("content-type");
+  if (!contentType?.includes("application/json")) {
+    return [];
+  }
+  try {
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
 }
 
 export default function HomePage() {
@@ -364,9 +373,9 @@ export default function HomePage() {
         </Container>
       </section>
 
-      {/* 5. NEWSLETTER - Full-bleed, production-level */}
+      {/* 5. NEWSLETTER - Full-bleed dark block. pb-20 + -mb-20 so no gap/line before footer. */}
       <section
-        className="w-full min-w-full py-12 md:py-16 lg:py-20"
+        className="w-full min-w-full pt-12 pb-20 md:pt-16 md:pb-20 lg:pt-20 lg:pb-20 -mb-20"
         style={{
           width: "100vw",
           maxWidth: "100vw",

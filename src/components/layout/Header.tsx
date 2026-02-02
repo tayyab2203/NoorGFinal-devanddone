@@ -10,6 +10,7 @@ import { MobileMenu } from "./MobileMenu";
 import { Container } from "./Container";
 import { ROUTES } from "@/lib/constants";
 import { useCartStore } from "@/store/cartStore";
+import { useCart } from "@/lib/api/cart";
 import { useWishlistStore } from "@/store/wishlistStore";
 import { useSearchOpen } from "@/components/shared/Providers";
 import { Button } from "@/components/ui/button";
@@ -33,7 +34,9 @@ const NAV_LINKS = [
 export function Header() {
   const pathname = usePathname();
   const { data: session, status } = useSession();
-  const cartCount = useCartStore((s) => s.getCartItemCount());
+  const isAuthenticated = status === "authenticated";
+  const { data: apiCart } = useCart({ enabled: isAuthenticated });
+  const zustandCartCount = useCartStore((s) => s.getCartItemCount());
   const wishlistCount = useWishlistStore((s) => s.productIds.length);
   const { searchOpen, setSearchOpen } = useSearchOpen();
   const [mounted, setMounted] = useState(false);
@@ -42,6 +45,9 @@ export function Header() {
     setMounted(true);
   }, []);
 
+  const cartCount = isAuthenticated && apiCart?.items
+    ? apiCart.items.reduce((sum, i) => sum + i.quantity, 0)
+    : zustandCartCount;
   const showCartCount = mounted ? cartCount : 0;
   const showWishlistCount = mounted ? wishlistCount : 0;
 

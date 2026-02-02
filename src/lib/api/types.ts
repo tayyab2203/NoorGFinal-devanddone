@@ -42,3 +42,11 @@ export function getApiErrorMessage(err: unknown): string {
   if (err instanceof Error) return err.message;
   return "An error occurred";
 }
+
+/** Unwrap API response body: { data: T } or raw T */
+export function unwrapData<T>(body: unknown, fallback: T): T {
+  if (body != null && typeof body === "object" && "data" in body && (body as { data?: T }).data !== undefined) {
+    return (body as { data: T }).data;
+  }
+  return (body as T) ?? fallback;
+}

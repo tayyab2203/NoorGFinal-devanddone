@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient, type UseQueryOptions, type UseMutationOptions } from "react-query";
 import { apiClient } from "./client";
-import { getApiErrorMessage } from "./types";
+import { getApiErrorMessage, unwrapData } from "./types";
 import { productsKeys } from "./products";
 import type { Product } from "@/types";
 
@@ -19,10 +19,12 @@ export interface CartResponse {
   expiresAt?: string;
 }
 
+const emptyCart: CartResponse = { id: "", items: [] };
+
 /** Fetch current cart */
 export async function getCart(): Promise<CartResponse> {
-  const { data } = await apiClient.get<CartResponse>("/api/cart");
-  return data ?? { id: "", items: [] };
+  const res = await apiClient.get<{ data?: CartResponse } | CartResponse>("/api/cart");
+  return unwrapData(res.data, emptyCart);
 }
 
 /** Add item to cart */
@@ -31,26 +33,45 @@ export async function addToCart(
   variantSKU: string,
   quantity: number
 ): Promise<CartResponse> {
-  const { data } = await apiClient.post<CartResponse>("/api/cart", {
+  const res = await apiClient.post<{ data?: CartResponse } | CartResponse>("/api/cart", {
     productId,
     variantSKU,
     quantity,
   });
-  return data ?? { id: "", items: [] };
+  return unwrapData(res.data, emptyCart);
 }
 
 /** Update cart item quantity */
 export async function updateCartItem(itemId: string, quantity: number): Promise<CartResponse> {
-  const { data } = await apiClient.patch<CartResponse>(`/api/cart/items/${itemId}`, {
-    quantity,
-  });
-  return data ?? { id: "", items: [] };
+  const res = await apiClient.patch<{ data?: CartResponse } | CartResponse>(
+    `/api/cart/items/${itemId}`,
+    { quantity }
+  );
+  return unwrapData(res.data, emptyCart);
 }
 
 /** Remove item from cart */
 export async function removeFromCart(itemId: string): Promise<CartResponse> {
-  const { data } = await apiClient.delete<CartResponse>(`/api/cart/items/${itemId}`);
-  return data ?? { id: "", items: [] };
+  const res = await apiClient.delete<{ data?: CartResponse } | CartResponse>(
+    `/api/cart/items/${itemId}`
+  );
+  return unwrapData(res.data, emptyCart);
+}
+
+/** Merge guest cart into user cart (auth required) */
+export async function mergeCart(
+  items: { productId: string; variantSKU: string; quantity: number }[]
+): Promise<CartResponse> {
+  const res = await apiClient.post<{ data?: CartResponse } | CartResponse>("/api/cart/merge", {
+    items,
+  });
+  return unwrapData(res.data, emptyCart);
+}
+
+/** Clear cart (auth required) */
+export async function clearCart(): Promise<CartResponse> {
+  const res = await apiClient.delete<{ data?: CartResponse } | CartResponse>("/api/cart");
+  return unwrapData(res.data, emptyCart);
 }
 
 // ---------------------------------------------------------------------------

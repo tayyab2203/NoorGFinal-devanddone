@@ -101,7 +101,7 @@ export default function CollectionsPage() {
                     src={c.image}
                     alt={c.name}
                     fill
-                    className="object-cover transition-all duration-[600ms] ease-out group-hover:scale-[1.08]"
+                    className="object-cover transition-all duration-500 ease-out group-hover:scale-[1.08]"
                     sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                   />
                   <div

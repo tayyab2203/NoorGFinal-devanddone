@@ -22,7 +22,7 @@ export const apiClient: AxiosInstance = axios.create({
   withCredentials: true, // send cookies for same-origin (NextAuth session)
 });
 
-// Request interceptor: attach token if available
+// Request interceptor: attach token if available; remove Content-Type for FormData
 apiClient.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
     if (tokenGetter) {
@@ -30,6 +30,10 @@ apiClient.interceptors.request.use(
       if (token && typeof token === "string") {
         config.headers.Authorization = `Bearer ${token}`;
       }
+    }
+    // When sending FormData, let the browser set Content-Type (multipart/form-data with boundary)
+    if (config.data instanceof FormData) {
+      delete config.headers["Content-Type"];
     }
     return config;
   },

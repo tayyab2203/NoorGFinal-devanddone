@@ -56,7 +56,7 @@ export function Footer() {
   };
 
   return (
-    <footer className="bg-[#333333] text-white">
+    <footer className="mt-0 bg-[#2a2a2a] text-white pb-20 md:pb-0">
       <Container
         noPadding
         className="py-8 px-4 md:py-12 md:px-8 lg:py-16 lg:px-12"
@@ -136,8 +136,8 @@ export function Footer() {
           </div>
         </div>
 
-        {/* Newsletter: full width on mobile */}
-        <div className="mt-12 border-t border-white/20 pt-10">
+        {/* Newsletter: full width on mobile — no visible border to avoid light line */}
+        <div className="mt-12 border-t border-transparent pt-10">
           <div className="mx-auto w-full max-w-md lg:max-w-md">
             <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-white">
               Newsletter
@@ -172,7 +172,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 border-t border-white/20 pt-6 text-center text-sm text-white/60">
+        <div className="mt-10 border-t border-transparent pt-6 text-center text-sm text-white/60">
           <span suppressHydrationWarning>© {new Date().getFullYear()} NOOR-G. All rights reserved.</span>
         </div>
       </Container>

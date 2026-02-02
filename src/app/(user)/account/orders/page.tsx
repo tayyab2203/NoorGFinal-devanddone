@@ -14,8 +14,8 @@ import {
   Eye,
   Filter,
 } from "lucide-react";
-import { MOCK_ORDERS } from "@/lib/mockOrders";
-import { MOCK_PRODUCTS } from "@/lib/mockData";
+import { useOrders } from "@/lib/api/orders";
+import type { OrderResponse } from "@/lib/api/orders";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatPrice } from "@/lib/utils";
@@ -42,53 +42,41 @@ const FILTER_OPTIONS = [
   { value: ORDER_STATUS.DELIVERED, label: "Delivered" },
 ];
 
-function getOrderImages(order: (typeof MOCK_ORDERS)[0]) {
-  return order.items.slice(0, 4).map((item) => {
-    const product = MOCK_PRODUCTS.find((p) => p.id === item.productId);
-    return product?.images[0]?.url ?? "/placeholder.svg";
-  });
+function getOrderImages(order: OrderResponse) {
+  return order.items.slice(0, 4).map(() => "/placeholder.svg");
 }
 
-function getProductNames(order: (typeof MOCK_ORDERS)[0]) {
-  return order.items
-    .slice(0, 2)
-    .map((item) => {
-      const product = MOCK_PRODUCTS.find((p) => p.id === item.productId);
-      return product?.name ?? "Product";
-    })
-    .join(", ");
+function getProductNames(order: OrderResponse) {
+  const n = order.items.length;
+  return n === 0 ? "No items" : n === 1 ? "1 item" : `${n} items`;
 }
 
 export default function AccountOrdersPage() {
   const [filter, setFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const { data: orders = [], isLoading } = useOrders();
 
   const filtered = useMemo(() => {
-    let orders = [...MOCK_ORDERS];
+    let list = [...orders];
 
-    // Filter by status
     if (filter !== "all") {
-      orders = orders.filter((o) => o.orderStatus === filter);
+      list = list.filter((o) => o.orderStatus === filter);
     }
 
-    // Search by order number
     if (search.trim()) {
       const q = search.trim().toLowerCase();
-      orders = orders.filter((o) =>
-        o.orderNumber.toLowerCase().includes(q)
-      );
+      list = list.filter((o) => o.orderNumber.toLowerCase().includes(q));
     }
 
-    // Sort by date
-    orders.sort(
+    list.sort(
       (a, b) =>
         new Date(b.createdAt ?? 0).getTime() -
         new Date(a.createdAt ?? 0).getTime()
     );
 
-    return orders;
-  }, [filter, search]);
+    return list;
+  }, [orders, filter, search]);
 
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE) || 1;
   const paginated = useMemo(() => {
@@ -96,7 +84,20 @@ export default function AccountOrdersPage() {
     return filtered.slice(start, start + ITEMS_PER_PAGE);
   }, [filtered, page]);
 
-  if (MOCK_ORDERS.length === 0) {
+  if (isLoading) {
+    return (
+      <div className="space-y-8">
+        <h1 className="text-2xl font-bold text-[#333333] md:text-[32px]">
+          My Orders
+        </h1>
+        <div className="rounded-xl border border-[#eee] bg-white p-12 text-center text-[#333333]/70">
+          Loading orders...
+        </div>
+      </div>
+    );
+  }
+
+  if (orders.length === 0) {
     return (
       <div className="space-y-8">
         <h1 className="text-2xl font-bold text-[#333333] md:text-[32px]">
@@ -251,10 +252,9 @@ export default function AccountOrdersPage() {
                         </div>
                       </div>
 
-                      {/* Product Names */}
+                      {/* Product summary */}
                       <p className="text-sm text-[#333333]/70">
                         {productNames}
-                        {order.items.length > 2 && ` +${order.items.length - 2} more`}
                       </p>
                     </div>
 

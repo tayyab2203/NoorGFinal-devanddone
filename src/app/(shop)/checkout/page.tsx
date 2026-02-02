@@ -27,6 +27,9 @@ import {
   Mail,
 } from "lucide-react";
 import { useCartStore, type CartStoreItem } from "@/store/cartStore";
+import { useCart, clearCart as clearCartApi } from "@/lib/api/cart";
+import { createOrder, confirmPayment, getOrdersErrorMessage } from "@/lib/api/orders";
+import { PAYMENT_METHOD } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatPrice } from "@/lib/utils";
@@ -47,18 +50,15 @@ const DARK = "#333333";
 const STEPS = [
   { key: "auth", label: "Sign In", icon: User },
   { key: "shipping", label: "Shipping", icon: Truck },
-  { key: "review", label: "Review", icon: Package },
+  { key: "review", label: "Review & Payment", icon: Package },
   { key: "confirmation", label: "Confirmation", icon: Check },
 ];
 
-function generateOrderNumber(): string {
-  return (
-    "ALN-" +
-    Date.now().toString(36).toUpperCase() +
-    "-" +
-    Math.random().toString(36).slice(2, 6).toUpperCase()
-  );
-}
+const PAYMENT_OPTIONS = [
+  { value: PAYMENT_METHOD.EASYPAISA, label: "Easypaisa" },
+  { value: PAYMENT_METHOD.JAZZCASH, label: "JazzCash" },
+  { value: PAYMENT_METHOD.BANK_TRANSFER, label: "Bank Transfer" },
+] as const;
 
 // Progress Stepper
 function ProgressStepper({ currentStep }: { currentStep: number }) {
@@ -219,12 +219,16 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { data: session, status } = useSession();
-  const { items, getCartTotal, clearCart } = useCartStore();
+  const isAuthenticated = status === "authenticated" && !!session?.user;
+  const { data: apiCart } = useCart({ enabled: isAuthenticated });
+  const { items: zustandItems, getCartTotal, clearCart: clearZustandCart } = useCartStore();
 
   const [step, setStep] = useState(1);
   const [isGuest, setIsGuest] = useState(false);
   const [shippingAddress, setShippingAddress] = useState<ShippingAddressValues | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<string>(PAYMENT_METHOD.EASYPAISA);
   const [orderNumber, setOrderNumber] = useState<string | null>(null);
+  const [orderId, setOrderId] = useState<string | null>(null);
   const [isPlacing, setIsPlacing] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
@@ -234,12 +238,24 @@ export default function CheckoutPage() {
     setHasMounted(true);
   }, []);
 
-  const subtotal = hasMounted ? getCartTotal() : 0;
+  const cartItemsForOrder = isAuthenticated && apiCart?.items
+    ? apiCart.items.filter((i) => i.product).map((i) => ({
+        product: i.product!,
+        id: i.id,
+        productId: i.productId,
+        variantSKU: i.variantSKU,
+        quantity: i.quantity,
+      }))
+    : hasMounted
+      ? zustandItems
+      : [];
+  const cartItems = cartItemsForOrder as CartStoreItem[];
+  const subtotal = cartItems.reduce(
+    (sum, i) => sum + (i.product.salePrice ?? i.product.price) * i.quantity,
+    0
+  );
   const shippingFee = subtotal >= 5000 ? 0 : 500;
   const total = subtotal + shippingFee;
-  const cartItems = hasMounted ? items : [];
-
-  const isAuthenticated = status === "authenticated" && !!session?.user;
   const canProceedFromAuth = isAuthenticated || isGuest;
 
   const shippingForm = useForm<ShippingAddressValues>({
@@ -274,14 +290,50 @@ export default function CheckoutPage() {
 
   const handlePlaceOrder = async () => {
     if (!shippingAddress || cartItems.length === 0 || !agreedToTerms) return;
+    if (!isAuthenticated) {
+      toast("Please sign in to place order", "error");
+      return;
+    }
     setIsPlacing(true);
-    await new Promise((r) => setTimeout(r, 1500));
-    const orderNum = generateOrderNumber();
-    setOrderNumber(orderNum);
-    clearCart();
-    setStep(4);
-    setIsPlacing(false);
-    toast("Order placed successfully!", "success");
+    try {
+      const orderItems = apiCart?.items?.filter((i) => i.product).map((i) => ({
+        productId: i.productId,
+        variantSKU: i.variantSKU,
+        quantity: i.quantity,
+      })) ?? [];
+      if (orderItems.length === 0) {
+        toast("Your cart is empty", "error");
+        setIsPlacing(false);
+        return;
+      }
+      const order = await createOrder({
+        items: orderItems,
+        shippingAddress: {
+          id: "",
+          userId: "",
+          fullName: shippingAddress.fullName,
+          phone: shippingAddress.phone,
+          street: shippingAddress.street,
+          city: shippingAddress.city,
+          state: shippingAddress.state,
+          postalCode: shippingAddress.postalCode,
+          country: shippingAddress.country,
+          isDefault: false,
+        },
+        paymentMethod,
+      });
+      await confirmPayment(order.id);
+      await clearCartApi();
+      clearZustandCart();
+      setOrderNumber(order.orderNumber);
+      setOrderId(order.id);
+      setStep(4);
+      toast("Order placed successfully!", "success");
+    } catch (err) {
+      toast(getOrdersErrorMessage(err) ?? "Failed to place order", "error");
+    } finally {
+      setIsPlacing(false);
+    }
   };
 
   const handleCopyOrderNumber = () => {
@@ -293,7 +345,7 @@ export default function CheckoutPage() {
   };
 
   // Empty cart redirect
-  if (hasMounted && items.length === 0 && step < 4) {
+  if (hasMounted && cartItems.length === 0 && step < 4) {
     return (
       <Container className="flex flex-col items-center justify-center gap-6 py-20">
         <Package className="h-20 w-20 text-[#333333]/20" />
@@ -831,7 +883,9 @@ export default function CheckoutPage() {
                   className="h-14 text-base font-semibold"
                   style={{ backgroundColor: GOLD, color: DARK }}
                 >
-                  <Link href={ROUTES.account}>View Order Details</Link>
+                  <Link href={orderId ? `${ROUTES.account}/orders/${orderId}` : ROUTES.account}>
+                    View Order Details
+                  </Link>
                 </Button>
                 <Button asChild variant="outline" className="h-14 text-base">
                   <Link href={ROUTES.shop}>Continue Shopping</Link>

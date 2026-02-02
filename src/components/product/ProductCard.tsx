@@ -110,8 +110,8 @@ export function ProductCard({
   useEffect(() => setHasMounted(true), []);
 
   const images = product.images;
-  const primaryImage = images[0]?.url ?? "/placeholder.svg";
-  const secondaryImage = images[1]?.url ?? primaryImage;
+  const primaryImage = images[0]?.url?.trim() || "/placeholder.svg";
+  const secondaryImage = images[1]?.url?.trim() || primaryImage;
   const firstVariant = product.variants[0];
   const variantSKU = firstVariant?.variantSKU;
   const inStock = product.variants.some((v) => v.stock > 0);
