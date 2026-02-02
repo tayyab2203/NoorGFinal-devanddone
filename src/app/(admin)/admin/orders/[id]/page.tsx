@@ -6,7 +6,6 @@ import Image from "next/image";
 import { useParams } from "next/navigation";
 import { useOrderById, updateOrder, getOrdersErrorMessage } from "@/lib/api/orders";
 import { useQueryClient } from "react-query";
-import { ordersKeys } from "@/lib/api/orders";
 import { ADMIN_ROUTES, COLORS, ORDER_STATUS, PAYMENT_STATUS } from "@/lib/constants";
 import { formatPrice } from "@/lib/utils";
 import { ArrowLeft } from "lucide-react";
@@ -34,8 +33,8 @@ export default function AdminOrderDetailPage() {
     setError(null);
     try {
       await updateOrder(id, { orderStatus, paymentStatus });
-      queryClient.invalidateQueries(ordersKeys.adminList());
-      queryClient.invalidateQueries(ordersKeys.detail(id));
+      queryClient.invalidateQueries({ queryKey: ["orders", "admin"] });
+      queryClient.invalidateQueries({ queryKey: ["orders", "detail", id] });
     } catch (e) {
       setError(getOrdersErrorMessage(e) ?? "Failed to update order");
     } finally {
