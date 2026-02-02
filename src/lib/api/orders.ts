@@ -66,7 +66,7 @@ export async function getAdminOrders(): Promise<OrderResponse[]> {
 // React Query hooks
 // ---------------------------------------------------------------------------
 
-const ordersKeys = {
+export const ordersKeys = {
   all: ["orders"] as const,
   list: () => [...ordersKeys.all, "list"] as const,
   detail: (id: string) => [...ordersKeys.all, "detail", id] as const,
