@@ -240,10 +240,10 @@ export default function AdminCategoryEditPage() {
         <div className="flex flex-wrap gap-4">
           <Button
             type="submit"
-            disabled={updateMutation.isPending || uploading}
+            disabled={updateMutation.isLoading || uploading}
             style={{ backgroundColor: COLORS.goldAccent, color: COLORS.primaryDark }}
           >
-            {updateMutation.isPending ? "Saving…" : "Save changes"}
+            {updateMutation.isLoading ? "Saving…" : "Save changes"}
           </Button>
           <Button type="button" variant="outline" asChild>
             <Link href={ADMIN_ROUTES.categoryDetail(id)}>Cancel</Link>
@@ -252,9 +252,9 @@ export default function AdminCategoryEditPage() {
             type="button"
             variant="destructive"
             onClick={handleDelete}
-            disabled={deleteMutation.isPending}
+            disabled={deleteMutation.isLoading}
           >
-            {deleteMutation.isPending ? "Deleting…" : "Delete category"}
+            {deleteMutation.isLoading ? "Deleting…" : "Delete category"}
           </Button>
         </div>
       </form>

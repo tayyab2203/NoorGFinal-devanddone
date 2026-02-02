@@ -124,10 +124,10 @@ export default function AdminSettingsPage() {
             />
             <Button
               type="submit"
-              disabled={updateProfile.isPending}
+              disabled={updateProfile.isLoading}
               style={{ backgroundColor: COLORS.goldAccent, color: COLORS.primaryDark }}
             >
-              {updateProfile.isPending ? "Updating…" : "Update email"}
+              {updateProfile.isLoading ? "Updating…" : "Update email"}
             </Button>
           </form>
         </div>
@@ -163,10 +163,10 @@ export default function AdminSettingsPage() {
             />
             <Button
               type="submit"
-              disabled={updateProfile.isPending}
+              disabled={updateProfile.isLoading}
               style={{ backgroundColor: COLORS.goldAccent, color: COLORS.primaryDark }}
             >
-              {updateProfile.isPending ? "Updating…" : "Update password"}
+              {updateProfile.isLoading ? "Updating…" : "Update password"}
             </Button>
           </form>
         </div>

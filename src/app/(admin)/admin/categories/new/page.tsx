@@ -185,10 +185,10 @@ export default function AdminCategoryNewPage() {
         <div className="flex gap-4">
           <Button
             type="submit"
-            disabled={createMutation.isPending || uploading}
+            disabled={createMutation.isLoading || uploading}
             style={{ backgroundColor: COLORS.goldAccent, color: COLORS.primaryDark }}
           >
-            {createMutation.isPending ? "Creating…" : "Create category"}
+            {createMutation.isLoading ? "Creating…" : "Create category"}
           </Button>
           <Button type="button" variant="outline" asChild>
             <Link href={ADMIN_ROUTES.categories}>Cancel</Link>
