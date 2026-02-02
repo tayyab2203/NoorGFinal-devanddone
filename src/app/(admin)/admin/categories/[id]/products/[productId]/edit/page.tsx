@@ -8,7 +8,7 @@ import { useProductById, updateProduct, deleteProduct, uploadProductImage, getPr
 import { useAdminCollection, useUpdateAdminCollection } from "@/lib/api/admin";
 import { useQueryClient } from "react-query";
 import { productsKeys } from "@/lib/api/products";
-import { ADMIN_ROUTES, COLORS, PRODUCT_STATUS } from "@/lib/constants";
+import { ADMIN_ROUTES, COLORS, PRODUCT_STATUS, type ProductStatus } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { ProductImage, ProductVariant } from "@/types";
@@ -33,7 +33,7 @@ export default function AdminCategoryProductEditPage() {
   const [salePrice, setSalePrice] = useState("");
   const [material, setMaterial] = useState("");
   const [SKU, setSKU] = useState("");
-  const [status, setStatus] = useState(PRODUCT_STATUS.ACTIVE);
+  const [status, setStatus] = useState<ProductStatus>(PRODUCT_STATUS.ACTIVE);
   const [images, setImages] = useState<ProductImage[]>([{ ...defaultImage }]);
   const [variants, setVariants] = useState<ProductVariant[]>([{ ...defaultVariant, variantSKU: "" }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
