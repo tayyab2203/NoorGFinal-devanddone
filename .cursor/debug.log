@@ -1,2 +1,0 @@
-{"location":"Header.tsx:42","message":"Header mounted - checking stacking context","data":{"zIndex":"50","position":"sticky","transform":"none"},"timestamp":1769867938409,"sessionId":"debug-session","hypothesisId":"C"}
-{"location":"Header.tsx:42","message":"Header mounted - checking stacking context","data":{"zIndex":"50","position":"sticky","transform":"none"},"timestamp":1769867980642,"sessionId":"debug-session","hypothesisId":"C"}
