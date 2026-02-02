@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useParams } from "next/navigation";
 import { useOrderById, updateOrder, getOrdersErrorMessage } from "@/lib/api/orders";
 import { useQueryClient } from "react-query";
-import { ADMIN_ROUTES, COLORS, ORDER_STATUS, PAYMENT_STATUS } from "@/lib/constants";
+import { ADMIN_ROUTES, COLORS, ORDER_STATUS, PAYMENT_STATUS, type OrderStatus, type PaymentStatus } from "@/lib/constants";
 import { formatPrice } from "@/lib/utils";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,8 +16,8 @@ export default function AdminOrderDetailPage() {
   const id = typeof params.id === "string" ? params.id : "";
   const queryClient = useQueryClient();
   const { data: order, isLoading } = useOrderById(id);
-  const [orderStatus, setOrderStatus] = useState(order?.orderStatus ?? ORDER_STATUS.PENDING);
-  const [paymentStatus, setPaymentStatus] = useState(order?.paymentStatus ?? PAYMENT_STATUS.PENDING);
+  const [orderStatus, setOrderStatus] = useState<OrderStatus>(order?.orderStatus ?? ORDER_STATUS.PENDING);
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>(order?.paymentStatus ?? PAYMENT_STATUS.PENDING);
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -100,7 +100,7 @@ export default function AdminOrderDetailPage() {
                 </label>
                 <select
                   value={orderStatus}
-                  onChange={(e) => setOrderStatus(e.target.value)}
+                  onChange={(e) => setOrderStatus(e.target.value as OrderStatus)}
                   className="h-10 w-full rounded-lg border border-[#ddd] px-3 py-2 text-sm"
                 >
                   {Object.values(ORDER_STATUS).map((s) => (
@@ -114,7 +114,7 @@ export default function AdminOrderDetailPage() {
                 </label>
                 <select
                   value={paymentStatus}
-                  onChange={(e) => setPaymentStatus(e.target.value)}
+                  onChange={(e) => setPaymentStatus(e.target.value as PaymentStatus)}
                   className="h-10 w-full rounded-lg border border-[#ddd] px-3 py-2 text-sm"
                 >
                   {Object.values(PAYMENT_STATUS).map((s) => (
