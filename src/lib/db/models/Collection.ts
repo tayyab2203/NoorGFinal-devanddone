@@ -29,13 +29,14 @@ CollectionSchema.index({ displayOrder: 1 });
 CollectionSchema.set("toJSON", {
   virtuals: true,
   transform(_doc, ret) {
-    ret.id = ret._id.toString();
-    ret.productIds = (ret.productIds ?? []).map((id: mongoose.Types.ObjectId) =>
-      id.toString()
+    const out = ret as unknown as Record<string, unknown> & { _id?: { toString: () => string }; productIds?: unknown[] };
+    out.id = out._id?.toString?.();
+    out.productIds = (out.productIds ?? []).map((id: unknown) =>
+      (id as mongoose.Types.ObjectId).toString()
     );
-    delete ret._id;
-    delete ret.__v;
-    return ret;
+    delete out._id;
+    delete out.__v;
+    return out;
   },
 });
 

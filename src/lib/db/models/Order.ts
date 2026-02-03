@@ -82,17 +82,16 @@ OrderSchema.index({ userId: 1, createdAt: -1 });
 OrderSchema.set("toJSON", {
   virtuals: true,
   transform(_doc, ret) {
-    ret.id = ret._id.toString();
-    ret.userId = ret.userId?.toString?.() ?? ret.userId;
-    ret.items = (ret.items ?? []).map(
-      (item: { productId: mongoose.Types.ObjectId; [k: string]: unknown }) => ({
-        ...item,
-        productId: item.productId?.toString?.() ?? item.productId,
-      })
-    );
-    delete ret._id;
-    delete ret.__v;
-    return ret;
+    const out = ret as unknown as Record<string, unknown> & { _id?: { toString: () => string }; userId?: unknown; items?: unknown[] };
+    out.id = out._id?.toString?.();
+    out.userId = (out.userId as { toString?: () => string })?.toString?.() ?? out.userId;
+    out.items = (out.items ?? []).map((item: unknown) => {
+      const i = item as Record<string, unknown> & { productId?: mongoose.Types.ObjectId };
+      return { ...i, productId: i.productId?.toString?.() ?? i.productId };
+    });
+    delete out._id;
+    delete out.__v;
+    return out;
   },
 });
 

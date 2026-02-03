@@ -31,10 +31,11 @@ const UserSchema = new Schema<IUser>(
 UserSchema.set("toJSON", {
   virtuals: true,
   transform(_doc, ret) {
-    ret.id = ret._id.toString();
-    delete ret._id;
-    delete ret.__v;
-    return ret;
+    const out = ret as unknown as Record<string, unknown> & { _id?: { toString: () => string } };
+    out.id = out._id?.toString?.();
+    delete out._id;
+    delete out.__v;
+    return out;
   },
 });
 
