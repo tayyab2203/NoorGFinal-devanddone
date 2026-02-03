@@ -6,6 +6,16 @@ import { collectionUpdateSchema } from "@/lib/validations";
 import { slugify } from "@/lib/utils";
 import mongoose from "mongoose";
 
+type CollectionDoc = {
+  _id: mongoose.Types.ObjectId;
+  name: string;
+  slug: string;
+  description?: string;
+  image?: string;
+  displayOrder?: number;
+  productIds?: mongoose.Types.ObjectId[];
+};
+
 /** GET /api/admin/collections/[id] - get one collection (admin only) */
 export async function GET(
   request: Request,
@@ -22,15 +32,7 @@ export async function GET(
     const collection = await Collection.findById(id).lean().exec();
     if (!collection) return error("Not found", 404);
 
-    const doc = collection as {
-      _id: mongoose.Types.ObjectId;
-      name: string;
-      slug: string;
-      description?: string;
-      image?: string;
-      displayOrder?: number;
-      productIds?: mongoose.Types.ObjectId[];
-    };
+    const doc = collection as unknown as CollectionDoc;
     const productIds = (doc.productIds ?? []).map((id) => id.toString());
     return success({
       id: doc._id.toString(),
@@ -94,15 +96,7 @@ export async function PATCH(
     const collection = await Collection.findByIdAndUpdate(id, { $set: updatePayload }, { new: true }).lean().exec();
     if (!collection) return error("Not found", 404);
 
-    const doc = collection as {
-      _id: mongoose.Types.ObjectId;
-      name: string;
-      slug: string;
-      description?: string;
-      image?: string;
-      displayOrder?: number;
-      productIds?: mongoose.Types.ObjectId[];
-    };
+    const doc = collection as unknown as CollectionDoc;
     const productIds = (doc.productIds ?? []).map((id) => id.toString());
     return success({
       id: doc._id.toString(),

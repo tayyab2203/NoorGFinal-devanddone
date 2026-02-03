@@ -1,3 +1,4 @@
+import type { Session } from "next-auth";
 import { auth } from "@/lib/auth";
 import { USER_ROLE } from "@/lib/constants";
 import { NextResponse } from "next/server";
@@ -17,9 +18,10 @@ export async function getSession() {
  * Returns null if authorized (caller should continue).
  */
 export async function requireAdmin(request?: Request): Promise<NextResponse | null> {
-  const session = request
-    ? await auth(request as Parameters<typeof auth>[0])
+  const raw = request
+    ? await auth(request as unknown as Parameters<typeof auth>[0])
     : await auth();
+  const session = raw as Session | null;
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

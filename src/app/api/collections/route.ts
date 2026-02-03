@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import { connectDB } from "@/lib/db/mongodb";
 import { Collection, Product } from "@/lib/db/models";
+import { isDbUnavailableError } from "@/lib/api/response";
 import { PRODUCT_STATUS } from "@/lib/constants";
 import type { Product as ProductType } from "@/types";
 

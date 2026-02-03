@@ -65,7 +65,7 @@ export async function GET(request: Request) {
       .sort({ createdAt: -1 })
       .lean()
       .exec();
-    const response = orders.map((o) => orderToResponse(o as Parameters<typeof orderToResponse>[0]));
+    const response = orders.map((o) => orderToResponse(o as unknown as Parameters<typeof orderToResponse>[0]));
     return success(response);
   } catch (e) {
     console.error("[api/orders] GET:", e);
@@ -106,13 +106,13 @@ export async function POST(request: Request) {
         status: "ACTIVE",
       }).lean();
       if (!product) return error(`Product not found or inactive: ${raw.productId}`, 400);
-      const variant = (product as { variants: { variantSKU: string; stock: number }[] }).variants?.find(
+      const variant = (product as unknown as { variants: { variantSKU: string; stock: number }[] }).variants?.find(
         (v) => v.variantSKU === raw.variantSKU
       );
       if (!variant) return error(`Variant not found: ${raw.variantSKU}`, 400);
       if (variant.stock < raw.quantity) return error(`Insufficient stock for ${raw.variantSKU}`, 400);
 
-      const price = (product as { salePrice: number | null; price: number }).salePrice ?? (product as { price: number }).price;
+      const price = (product as unknown as { salePrice: number | null; price: number }).salePrice ?? (product as unknown as { price: number }).price;
       const unitPrice = typeof price === "number" ? price : Number(price);
       orderItems.push({
         productId: new mongoose.Types.ObjectId(raw.productId),
@@ -164,7 +164,7 @@ export async function POST(request: Request) {
     });
 
     const populated = await Order.findById(order._id).lean().exec();
-    const response = orderToResponse(populated as Parameters<typeof orderToResponse>[0]);
+    const response = orderToResponse(populated as unknown as Parameters<typeof orderToResponse>[0]);
     return success(response);
   } catch (e) {
     console.error("[api/orders] POST:", e);

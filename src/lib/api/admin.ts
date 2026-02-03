@@ -152,11 +152,16 @@ const adminKeys = {
   inventory: (filter?: string) => ["admin", "inventory", filter] as const,
 };
 
-export function useAdminCollections(options?: Omit<UseQueryOptions<AdminCollectionItem[]>, "queryKey" | "queryFn">) {
+export function useAdminCollections(
+  options?: Omit<UseQueryOptions<AdminCollectionItem[], Error, AdminCollectionItem[], typeof adminKeys.collections>, "queryKey" | "queryFn">
+) {
   return useQuery({ queryKey: adminKeys.collections, queryFn: getAdminCollections, ...options });
 }
 
-export function useAdminCollection(id: string | null, options?: Omit<UseQueryOptions<AdminCollectionItem | null>, "queryKey" | "queryFn">) {
+export function useAdminCollection(
+  id: string | null,
+  options?: Omit<UseQueryOptions<AdminCollectionItem | null, Error, AdminCollectionItem | null, ReturnType<typeof adminKeys.collection>>, "queryKey" | "queryFn">
+) {
   return useQuery({
     queryKey: adminKeys.collection(id ?? ""),
     queryFn: () => getAdminCollection(id!),
@@ -195,7 +200,13 @@ export function useDeleteAdminCollection(options?: UseMutationOptions<void, Erro
   });
 }
 
-export function useAdminUsers(params?: { page?: number; limit?: number; q?: string }, options?: Omit<UseQueryOptions<Awaited<ReturnType<typeof getAdminUsers>>>, "queryKey" | "queryFn">) {
+type AdminUsersResult = Awaited<ReturnType<typeof getAdminUsers>>;
+type AdminUserResult = Awaited<ReturnType<typeof getAdminUser>>;
+
+export function useAdminUsers(
+  params?: { page?: number; limit?: number; q?: string },
+  options?: Omit<UseQueryOptions<AdminUsersResult, Error, AdminUsersResult, ReturnType<typeof adminKeys.users>>, "queryKey" | "queryFn">
+) {
   return useQuery({
     queryKey: adminKeys.users(params),
     queryFn: () => getAdminUsers(params),
@@ -203,7 +214,10 @@ export function useAdminUsers(params?: { page?: number; limit?: number; q?: stri
   });
 }
 
-export function useAdminUser(id: string | null, options?: Omit<UseQueryOptions<Awaited<ReturnType<typeof getAdminUser>>>, "queryKey" | "queryFn">) {
+export function useAdminUser(
+  id: string | null,
+  options?: Omit<UseQueryOptions<AdminUserResult, Error, AdminUserResult, ReturnType<typeof adminKeys.user>>, "queryKey" | "queryFn">
+) {
   return useQuery({
     queryKey: adminKeys.user(id ?? ""),
     queryFn: () => getAdminUser(id!),
@@ -212,7 +226,10 @@ export function useAdminUser(id: string | null, options?: Omit<UseQueryOptions<A
   });
 }
 
-export function useAdminPayments(params?: { method?: string; status?: string }, options?: Omit<UseQueryOptions<AdminPaymentItem[]>, "queryKey" | "queryFn">) {
+export function useAdminPayments(
+  params?: { method?: string; status?: string },
+  options?: Omit<UseQueryOptions<AdminPaymentItem[], Error, AdminPaymentItem[], ReturnType<typeof adminKeys.payments>>, "queryKey" | "queryFn">
+) {
   return useQuery({
     queryKey: adminKeys.payments(params),
     queryFn: () => getAdminPayments(params),
@@ -220,7 +237,10 @@ export function useAdminPayments(params?: { method?: string; status?: string }, 
   });
 }
 
-export function useAdminInventory(filter?: "all" | "low_stock" | "out_of_stock", options?: Omit<UseQueryOptions<InventoryVariantItem[]>, "queryKey" | "queryFn">) {
+export function useAdminInventory(
+  filter?: "all" | "low_stock" | "out_of_stock",
+  options?: Omit<UseQueryOptions<InventoryVariantItem[], Error, InventoryVariantItem[], ReturnType<typeof adminKeys.inventory>>, "queryKey" | "queryFn">
+) {
   return useQuery({
     queryKey: adminKeys.inventory(filter),
     queryFn: () => getAdminInventory(filter),

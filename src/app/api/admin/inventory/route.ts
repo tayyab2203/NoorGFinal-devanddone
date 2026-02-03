@@ -29,7 +29,8 @@ export async function GET(request: Request) {
     const products = await Product.find({}).sort({ name: 1 }).lean().exec();
 
     const rows: InventoryVariantItem[] = [];
-    for (const p of products as { _id: mongoose.Types.ObjectId; name: string; status: string; variants: { size: string; color: string; stock: number; variantSKU: string }[] }[]) {
+    type ProductDoc = { _id: mongoose.Types.ObjectId; name: string; status: string; variants: { size: string; color: string; stock: number; variantSKU: string }[] };
+    for (const p of products as unknown as ProductDoc[]) {
       for (const v of p.variants ?? []) {
         const status: "in_stock" | "low_stock" | "out_of_stock" =
           v.stock === 0 ? "out_of_stock" : v.stock < 5 ? "low_stock" : "in_stock";

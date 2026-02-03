@@ -62,6 +62,9 @@ export async function GET(
     const user = await User.findById(id).lean().exec();
     if (!user) return error("Not found", 404);
 
+    type UserDoc = { _id: mongoose.Types.ObjectId; name: string; email: string; image: string | null; role: string; createdAt: Date };
+    const u = user as unknown as UserDoc;
+
     const orders = await Order.find({ userId: new mongoose.Types.ObjectId(id) })
       .sort({ createdAt: -1 })
       .limit(50)
@@ -69,14 +72,14 @@ export async function GET(
       .exec();
 
     const profile = {
-      id: (user as { _id: mongoose.Types.ObjectId })._id.toString(),
-      name: (user as { name: string }).name,
-      email: (user as { email: string }).email,
-      image: (user as { image: string | null }).image,
-      role: (user as { role: string }).role,
-      createdAt: (user as { createdAt: Date }).createdAt?.toISOString?.() ?? "",
+      id: u._id.toString(),
+      name: u.name,
+      email: u.email,
+      image: u.image,
+      role: u.role,
+      createdAt: u.createdAt?.toISOString?.() ?? "",
     };
-    const ordersList = orders.map((o) => orderToResponse(o as Parameters<typeof orderToResponse>[0]));
+    const ordersList = orders.map((o) => orderToResponse(o as unknown as Parameters<typeof orderToResponse>[0]));
     return success({ user: profile, orders: ordersList });
   } catch (e) {
     console.error("[api/admin/users/[id]] GET:", e);

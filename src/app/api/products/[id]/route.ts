@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import { connectDB } from "@/lib/db/mongodb";
 import { Product } from "@/lib/db/models";
-import { success, error } from "@/lib/api/response";
+import { success, error, isDbUnavailableError } from "@/lib/api/response";
 import { requireAdmin } from "@/lib/auth-server";
 import { auth } from "@/lib/auth";
 import { PRODUCT_STATUS } from "@/lib/constants";

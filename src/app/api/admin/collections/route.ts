@@ -47,7 +47,7 @@ export async function GET(request: Request) {
   try {
     await connectDB();
     const collections = await Collection.find({}).sort({ displayOrder: 1 }).lean().exec();
-    const list = collections.map((c) => toItem(c as Parameters<typeof toItem>[0]));
+    const list = collections.map((c) => toItem(c as unknown as Parameters<typeof toItem>[0]));
     return success(list);
   } catch (e) {
     console.error("[api/admin/collections] GET:", e);

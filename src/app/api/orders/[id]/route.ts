@@ -75,10 +75,11 @@ export async function GET(
     const order = await Order.findById(id).lean().exec();
     if (!order) return error("Order not found", 404);
 
-    const orderUserId = (order as { userId: mongoose.Types.ObjectId }).userId?.toString?.() ?? (order as { userId: string }).userId;
+    const orderDoc = order as unknown as { userId: mongoose.Types.ObjectId | string };
+    const orderUserId = (orderDoc.userId as mongoose.Types.ObjectId)?.toString?.() ?? (orderDoc.userId as string);
     if (orderUserId !== userId && role !== USER_ROLE.ADMIN) return error("Forbidden", 403);
 
-    const response = orderToResponse(order as Parameters<typeof orderToResponse>[0]);
+    const response = orderToResponse(order as unknown as Parameters<typeof orderToResponse>[0]);
     return success(response);
   } catch (e) {
     console.error("[api/orders/[id]] GET:", e);
@@ -112,7 +113,7 @@ export async function PATCH(
       { new: true }
     ).lean();
     if (!order) return error("Order not found", 404);
-    const response = orderToResponse(order as Parameters<typeof orderToResponse>[0]);
+    const response = orderToResponse(order as unknown as Parameters<typeof orderToResponse>[0]);
     return success(response);
   } catch (e) {
     console.error("[api/orders/[id]] PATCH:", e);

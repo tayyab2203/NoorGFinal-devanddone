@@ -16,7 +16,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useOrders, type OrderResponse } from "@/lib/api/orders";
+import { useOrders } from "@/lib/api/orders";
 import { useAddresses } from "@/lib/api/user";
 import { useWishlistStore } from "@/store/wishlistStore";
 import { formatPrice } from "@/lib/utils";
@@ -96,7 +96,7 @@ function QuickActionCard({
   );
 }
 
-function getOrderImages(order: OrderResponse): string[] {
+function getOrderImages(order: { items?: Array<{ quantity?: number }> }): string[] {
   if (!order.items?.length) return ["/placeholder.svg"];
   return order.items.slice(0, 4).map(() => "/placeholder.svg");
 }

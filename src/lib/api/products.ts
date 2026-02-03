@@ -59,6 +59,16 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
   }
 }
 
+/** Fetch a single product by id */
+export async function getProductById(id: string): Promise<Product | null> {
+  try {
+    const { data } = await apiClient.get<Product>(`/api/products/${id}`);
+    return data ?? null;
+  } catch {
+    return null;
+  }
+}
+
 /** Search products by query */
 export async function searchProducts(query: string): Promise<Product[]> {
   if (!query.trim()) return [];

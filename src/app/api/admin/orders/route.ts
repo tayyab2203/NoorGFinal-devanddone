@@ -54,7 +54,7 @@ export async function GET(request: Request) {
   try {
     await connectDB();
     const orders = await Order.find({}).sort({ createdAt: -1 }).lean().exec();
-    const response = orders.map((o) => orderToResponse(o as Parameters<typeof orderToResponse>[0]));
+    const response = orders.map((o) => orderToResponse(o as unknown as Parameters<typeof orderToResponse>[0]));
     return success(response);
   } catch (e) {
     console.error("[api/admin/orders] GET:", e);

@@ -31,16 +31,16 @@ export async function GET(request: Request) {
     if (status) filter.status = status;
 
     const payments = await Payment.find(filter).sort({ createdAt: -1 }).limit(200).lean().exec();
-    const orderIds = [...new Set((payments as { orderId: mongoose.Types.ObjectId }[]).map((p) => p.orderId))];
+    const orderIds = [...new Set((payments as unknown as { orderId: mongoose.Types.ObjectId }[]).map((p) => p.orderId))];
     const orders = await Order.find({ _id: { $in: orderIds } }).select("orderNumber totalAmount").lean().exec();
     const orderMap = new Map(
-      (orders as { _id: mongoose.Types.ObjectId; orderNumber: string; totalAmount: number }[]).map((o) => [
+      (orders as unknown as { _id: mongoose.Types.ObjectId; orderNumber: string; totalAmount: number }[]).map((o) => [
         o._id.toString(),
         { orderNumber: o.orderNumber, totalAmount: o.totalAmount },
       ])
     );
 
-    const list: AdminPaymentItem[] = (payments as {
+    const list: AdminPaymentItem[] = (payments as unknown as {
       _id: mongoose.Types.ObjectId;
       orderId: mongoose.Types.ObjectId;
       method: string;

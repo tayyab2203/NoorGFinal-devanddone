@@ -78,7 +78,7 @@ export async function PATCH(
     const product = await import("@/lib/db/models").then((m) => m.Product).then((P) =>
       P.findById(line.productId).lean().exec()
     );
-    const variant = (product as { variants: { variantSKU: string; stock: number }[] } | null)?.variants?.find(
+    const variant = (product as unknown as { variants: { variantSKU: string; stock: number }[] } | null)?.variants?.find(
       (v) => v.variantSKU === line.variantSKU
     );
     if (variant && variant.stock < quantity) return error("Insufficient stock", 400);

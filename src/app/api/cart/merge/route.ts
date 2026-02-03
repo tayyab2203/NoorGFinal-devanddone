@@ -60,13 +60,14 @@ export async function POST(request: Request) {
         status: PRODUCT_STATUS.ACTIVE,
       }).lean();
       if (!product) continue;
-      const variant = (product as { variants: { variantSKU: string; stock: number }[] }).variants?.find(
+      const variant = (product as unknown as { variants: { variantSKU: string; stock: number }[] }).variants?.find(
         (v) => v.variantSKU === raw.variantSKU
       );
       if (!variant || variant.stock < 1) continue;
 
+      type CartItemDoc = { productId: mongoose.Types.ObjectId; variantSKU: string; quantity: number };
       const existing = cart.items.find(
-        (i) => i.productId.toString() === raw.productId && i.variantSKU === raw.variantSKU
+        (i: CartItemDoc) => i.productId.toString() === raw.productId && i.variantSKU === raw.variantSKU
       );
       const addQty = Math.min(raw.quantity, variant.stock);
       if (existing) {
@@ -85,13 +86,15 @@ export async function POST(request: Request) {
     const populated = await Cart.findById(cart._id).lean().exec();
     if (!populated) return success({ id: cart._id.toString(), items: [] } as CartResponse);
 
-    const productIds = [...new Set((populated.items ?? []).map((i) => i.productId.toString()))];
+    type PopulatedCart = { _id: mongoose.Types.ObjectId; userId: mongoose.Types.ObjectId; items?: { _id: mongoose.Types.ObjectId; productId: mongoose.Types.ObjectId; variantSKU: string; quantity: number }[] };
+    const doc = populated as unknown as PopulatedCart;
+    const productIds = [...new Set((doc.items ?? []).map((i) => i.productId.toString()))];
     const products = await Product.find({ _id: { $in: productIds.map((id) => new mongoose.Types.ObjectId(id)) } })
       .lean()
       .exec();
-    const productMap = new Map(products.map((p) => [(p as { _id: mongoose.Types.ObjectId })._id.toString(), p]));
+    const productMap = new Map(products.map((p) => [(p as unknown as { _id: mongoose.Types.ObjectId })._id.toString(), p]));
 
-    const items: CartItemResponse[] = (populated.items ?? []).map(
+    const items: CartItemResponse[] = (doc.items ?? []).map(
       (item: { _id: mongoose.Types.ObjectId; productId: mongoose.Types.ObjectId; variantSKU: string; quantity: number }) => ({
         id: item._id.toString(),
         productId: item.productId.toString(),
@@ -104,8 +107,8 @@ export async function POST(request: Request) {
     );
 
     const response: CartResponse = {
-      id: (populated as { _id: mongoose.Types.ObjectId })._id.toString(),
-      userId: (populated as { userId: mongoose.Types.ObjectId }).userId?.toString?.(),
+      id: doc._id.toString(),
+      userId: doc.userId?.toString?.(),
       items,
     };
     return success(response);

@@ -28,7 +28,7 @@ export async function GET(request: Request) {
 
   try {
     await connectDB();
-    const filter: { role?: string; $or?: { name: RegExp; email: RegExp }[] } = { role: USER_ROLE.CUSTOMER };
+    const filter: { role?: string; $or?: Array<{ name: RegExp } | { email: RegExp }> } = { role: USER_ROLE.CUSTOMER };
     if (search) {
       filter.$or = [
         { name: new RegExp(search, "i") },
@@ -41,7 +41,7 @@ export async function GET(request: Request) {
       User.countDocuments(filter),
     ]);
 
-    const userIds = (users as { _id: mongoose.Types.ObjectId }[]).map((u) => u._id);
+    const userIds = (users as unknown as { _id: mongoose.Types.ObjectId }[]).map((u) => u._id);
     const orderCounts = await Order.aggregate([
       { $match: { userId: { $in: userIds } } },
       { $group: { _id: "$userId", count: { $sum: 1 }, lastDate: { $max: "$createdAt" } } },
@@ -50,7 +50,8 @@ export async function GET(request: Request) {
       orderCounts.map((o) => [o._id.toString(), { count: o.count, lastDate: o.lastDate }])
     );
 
-    const list: AdminUserItem[] = (users as { _id: mongoose.Types.ObjectId; name: string; email: string; image: string | null; role: string; createdAt: Date }[]).map((u) => {
+    type UserDoc = { _id: mongoose.Types.ObjectId; name: string; email: string; image: string | null; role: string; createdAt: Date };
+    const list: AdminUserItem[] = (users as unknown as UserDoc[]).map((u) => {
       const info = countMap.get(u._id.toString());
       return {
         id: u._id.toString(),
