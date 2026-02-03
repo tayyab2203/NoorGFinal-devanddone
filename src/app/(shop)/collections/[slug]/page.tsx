@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { X, PackageOpen, ChevronLeft } from "lucide-react";
+import { X, PackageOpen, ChevronLeft, ChevronRight } from "lucide-react";
 import { ProductGrid } from "@/components/product/ProductGrid";
 import {
   CollectionFilters,
