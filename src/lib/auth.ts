@@ -110,7 +110,7 @@ export const authOptions = {
               });
             }
             token.id = dbUser._id.toString();
-            token.role = dbUser.role === USER_ROLE.ADMIN ? USER_ROLE.CUSTOMER : dbUser.role;
+            token.role = dbUser.role === USER_ROLE.ADMIN ? USER_ROLE.ADMIN : dbUser.role;
           } catch (e) {
             console.error("[auth] DB sync error:", e);
             token.id = token.sub ?? undefined;
@@ -157,7 +157,9 @@ export const authOptions = {
         return true;
       }
       if (pathname.startsWith("/admin")) {
-        if (!auth?.user) return false;
+        if (!auth?.user) {
+          return NextResponse.redirect(new URL("/admin/login", request.url));
+        }
         const role = (auth.user as { role?: string }).role;
         if (role !== USER_ROLE.ADMIN) {
           return NextResponse.redirect(

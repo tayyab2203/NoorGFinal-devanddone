@@ -48,7 +48,7 @@ function orderToResponse(doc: {
 
 /** GET /api/admin/orders - list all orders (admin only) */
 export async function GET(request: Request) {
-  const forbidden = await requireAdmin();
+  const forbidden = await requireAdmin(request);
   if (forbidden) return forbidden;
 
   try {

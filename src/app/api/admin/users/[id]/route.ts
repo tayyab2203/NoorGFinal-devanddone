@@ -51,7 +51,7 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const forbidden = await requireAdmin();
+  const forbidden = await requireAdmin(request);
   if (forbidden) return forbidden;
 
   const { id } = await params;

@@ -18,7 +18,7 @@ export interface AdminUserItem {
 
 /** GET /api/admin/users - list users (admin only, paginated) */
 export async function GET(request: Request) {
-  const forbidden = await requireAdmin();
+  const forbidden = await requireAdmin(request);
   if (forbidden) return forbidden;
 
   const { searchParams } = new URL(request.url);

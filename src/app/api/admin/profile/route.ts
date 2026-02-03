@@ -7,7 +7,7 @@ import mongoose from "mongoose";
 
 /** PATCH /api/admin/profile - Update logged-in admin's email and/or password */
 export async function PATCH(request: Request) {
-  const forbidden = await requireAdmin();
+  const forbidden = await requireAdmin(request);
   if (forbidden) return forbidden;
 
   const session = await getSession();

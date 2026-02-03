@@ -19,7 +19,7 @@ function isAllowedType(type: string): boolean {
 }
 
 export async function POST(request: Request) {
-  const forbidden = await requireAdmin();
+  const forbidden = await requireAdmin(request);
   if (forbidden) return forbidden;
 
   try {

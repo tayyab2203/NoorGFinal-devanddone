@@ -17,7 +17,7 @@ export interface AdminPaymentItem {
 
 /** GET /api/admin/payments - list all payments (admin only) */
 export async function GET(request: Request) {
-  const forbidden = await requireAdmin();
+  const forbidden = await requireAdmin(request);
   if (forbidden) return forbidden;
 
   const { searchParams } = new URL(request.url);

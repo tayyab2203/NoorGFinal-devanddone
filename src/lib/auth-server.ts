@@ -13,15 +13,14 @@ export async function getSession() {
 }
 
 /**
- * Require admin role. Use in API routes. Pass the request so the session cookie is read.
+ * Require admin role. Use in API routes.
+ * In App Router Route Handlers, auth() reads the session from the current request context (cookies).
+ * Do not pass request to auth() — NextAuth v5 does not use it and the session would be null.
  * Returns NextResponse with 401 if not authenticated, 403 if not admin.
  * Returns null if authorized (caller should continue).
  */
-export async function requireAdmin(request?: Request): Promise<NextResponse | null> {
-  const raw = request
-    ? await auth(request as unknown as Parameters<typeof auth>[0])
-    : await auth();
-  const session = raw as Session | null;
+export async function requireAdmin(_request?: Request): Promise<NextResponse | null> {
+  const session = (await auth()) as Session | null;
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

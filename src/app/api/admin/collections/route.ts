@@ -41,7 +41,7 @@ function toItem(doc: {
 
 /** GET /api/admin/collections - list all collections (admin only) */
 export async function GET(request: Request) {
-  const forbidden = await requireAdmin();
+  const forbidden = await requireAdmin(request);
   if (forbidden) return forbidden;
 
   try {
@@ -57,7 +57,7 @@ export async function GET(request: Request) {
 
 /** POST /api/admin/collections - create collection (admin only) */
 export async function POST(request: Request) {
-  const forbidden = await requireAdmin();
+  const forbidden = await requireAdmin(request);
   if (forbidden) return forbidden;
 
   const body = await request.json().catch(() => ({}));

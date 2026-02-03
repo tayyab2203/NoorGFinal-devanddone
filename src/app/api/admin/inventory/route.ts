@@ -18,7 +18,7 @@ export interface InventoryVariantItem {
 
 /** GET /api/admin/inventory - list all products with variant stock (admin only) */
 export async function GET(request: Request) {
-  const forbidden = await requireAdmin();
+  const forbidden = await requireAdmin(request);
   if (forbidden) return forbidden;
 
   const { searchParams } = new URL(request.url);
