@@ -154,31 +154,31 @@ export default function CollectionSlugPage() {
     );
   }
 
-  if (error || (!data && !isLoading)) {
-    return (
-      <div className="space-y-6">
+  const notFoundContent = (
+    <div className="space-y-6">
+      <Link
+        href={ROUTES.collections}
+        className="inline-flex items-center gap-2 text-sm font-medium text-[#C4A747] hover:underline"
+      >
+        <ChevronLeft className="h-4 w-4" />
+        Back to Collections
+      </Link>
+      <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#ddd] bg-[#F5F3EE]/50 py-20 text-center">
+        <PackageOpen className="h-20 w-20 text-[#333333]/20" />
+        <p className="mt-4 text-lg font-medium text-[#333333]">
+          Collection not found
+        </p>
         <Link
           href={ROUTES.collections}
-          className="inline-flex items-center gap-2 text-sm font-medium text-[#C4A747] hover:underline"
+          className="mt-6 text-[#C4A747] font-medium hover:underline"
         >
-          <ChevronLeft className="h-4 w-4" />
-          Back to Collections
+          View all collections
         </Link>
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#ddd] bg-[#F5F3EE]/50 py-20 text-center">
-          <PackageOpen className="h-20 w-20 text-[#333333]/20" />
-          <p className="mt-4 text-lg font-medium text-[#333333]">
-            Collection not found
-          </p>
-          <Link
-            href={ROUTES.collections}
-            className="mt-6 text-[#C4A747] font-medium hover:underline"
-          >
-            View all collections
-          </Link>
-        </div>
       </div>
-    );
-  }
+    </div>
+  );
+
+  if (error || !data) return notFoundContent;
 
   const { collection, products } = data;
 

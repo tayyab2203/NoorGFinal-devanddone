@@ -1,7 +1,7 @@
 import { hash, compare } from "bcryptjs";
 import { connectDB } from "@/lib/db/mongodb";
 import { User } from "@/lib/db/models";
-import { success, error } from "@/lib/api/response";
+import { successAdmin, error } from "@/lib/api/response";
 import { requireAdmin, getSession } from "@/lib/auth-server";
 import mongoose from "mongoose";
 
@@ -78,7 +78,7 @@ export async function PATCH(request: Request) {
 
     await user.save();
 
-    return success({
+    return successAdmin({
       email: user.email,
       message: wantsEmailChange && wantsPasswordChange
         ? "Email and password updated"

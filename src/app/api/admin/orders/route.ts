@@ -1,6 +1,6 @@
 import { connectDB } from "@/lib/db/mongodb";
 import { Order } from "@/lib/db/models";
-import { success, error } from "@/lib/api/response";
+import { successAdmin, error } from "@/lib/api/response";
 import { requireAdmin } from "@/lib/auth-server";
 import mongoose from "mongoose";
 import type { OrderResponse } from "@/lib/api/orders";
@@ -55,7 +55,7 @@ export async function GET(request: Request) {
     await connectDB();
     const orders = await Order.find({}).sort({ createdAt: -1 }).lean().exec();
     const response = orders.map((o) => orderToResponse(o as unknown as Parameters<typeof orderToResponse>[0]));
-    return success(response);
+    return successAdmin(response);
   } catch (e) {
     console.error("[api/admin/orders] GET:", e);
     return error("Failed to fetch orders", 500);

@@ -29,13 +29,23 @@ const SIDEBAR_LINKS = [
   { href: ADMIN_ROUTES.settings, label: "Settings", icon: Settings },
 ];
 
+const STALE_TIME_ADMIN_NAV = 3 * 60 * 1000; // 3 min — breadcrumb data
+
 function AdminBreadcrumb() {
   const pathname = usePathname();
   const segments = pathname.replace(/^\/admin\/?/, "").split("/").filter(Boolean);
-  
-  // Fetch categories and products to resolve IDs to names
-  const { data: categories = [] } = useAdminCollections();
-  const { data: products = [] } = useProducts();
+  const needCategories = pathname.includes("categories");
+  const needProducts = pathname.includes("products");
+
+  // Only fetch when breadcrumb needs to resolve category/product names
+  const { data: categories = [] } = useAdminCollections({
+    enabled: needCategories,
+    staleTime: STALE_TIME_ADMIN_NAV,
+  });
+  const { data: products = [] } = useProducts(undefined, {
+    enabled: needProducts,
+    staleTime: STALE_TIME_ADMIN_NAV,
+  });
   
   const labels: Record<string, string> = {
     categories: "Categories",

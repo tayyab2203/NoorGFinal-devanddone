@@ -1,6 +1,6 @@
 import { connectDB } from "@/lib/db/mongodb";
 import { User, Order } from "@/lib/db/models";
-import { success, error } from "@/lib/api/response";
+import { successAdmin, error } from "@/lib/api/response";
 import { requireAdmin } from "@/lib/auth-server";
 import { USER_ROLE } from "@/lib/constants";
 import mongoose from "mongoose";
@@ -65,7 +65,7 @@ export async function GET(request: Request) {
       };
     });
 
-    return success({ users: list, total, page, limit, totalPages: Math.ceil(total / limit) });
+    return successAdmin({ users: list, total, page, limit, totalPages: Math.ceil(total / limit) });
   } catch (e) {
     console.error("[api/admin/users] GET:", e);
     return error("Failed to fetch users", 500);

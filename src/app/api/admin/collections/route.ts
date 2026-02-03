@@ -1,6 +1,6 @@
 import { connectDB } from "@/lib/db/mongodb";
 import { Collection } from "@/lib/db/models";
-import { success, error } from "@/lib/api/response";
+import { successAdmin, error } from "@/lib/api/response";
 import { requireAdmin } from "@/lib/auth-server";
 import { collectionCreateSchema } from "@/lib/validations";
 import { slugify } from "@/lib/utils";
@@ -48,7 +48,7 @@ export async function GET(request: Request) {
     await connectDB();
     const collections = await Collection.find({}).sort({ displayOrder: 1 }).lean().exec();
     const list = collections.map((c) => toItem(c as unknown as Parameters<typeof toItem>[0]));
-    return success(list);
+    return successAdmin(list);
   } catch (e) {
     console.error("[api/admin/collections] GET:", e);
     return error("Failed to fetch collections", 500);
@@ -96,7 +96,7 @@ export async function POST(request: Request) {
 
     const doc = collection.toObject ? collection.toObject() : collection;
     const item = toItem({ ...doc, productIds: collection.productIds });
-    return success(item);
+    return successAdmin(item);
   } catch (e) {
     console.error("[api/admin/collections] POST:", e);
     return error("Failed to create collection", 500);

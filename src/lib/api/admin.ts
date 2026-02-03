@@ -152,10 +152,17 @@ const adminKeys = {
   inventory: (filter?: string) => ["admin", "inventory", filter] as const,
 };
 
+const STALE_TIME_ADMIN = 90 * 1000; // 90s — reduce refetches when navigating admin
+
 export function useAdminCollections(
   options?: Omit<UseQueryOptions<AdminCollectionItem[], Error, AdminCollectionItem[], typeof adminKeys.collections>, "queryKey" | "queryFn">
 ) {
-  return useQuery({ queryKey: adminKeys.collections, queryFn: getAdminCollections, ...options });
+  return useQuery({
+    queryKey: adminKeys.collections,
+    queryFn: getAdminCollections,
+    staleTime: STALE_TIME_ADMIN,
+    ...options,
+  });
 }
 
 export function useAdminCollection(
@@ -210,6 +217,7 @@ export function useAdminUsers(
   return useQuery({
     queryKey: adminKeys.users(params),
     queryFn: () => getAdminUsers(params),
+    staleTime: STALE_TIME_ADMIN,
     ...options,
   });
 }
@@ -233,6 +241,7 @@ export function useAdminPayments(
   return useQuery({
     queryKey: adminKeys.payments(params),
     queryFn: () => getAdminPayments(params),
+    staleTime: STALE_TIME_ADMIN,
     ...options,
   });
 }
@@ -244,6 +253,7 @@ export function useAdminInventory(
   return useQuery({
     queryKey: adminKeys.inventory(filter),
     queryFn: () => getAdminInventory(filter),
+    staleTime: STALE_TIME_ADMIN,
     ...options,
   });
 }

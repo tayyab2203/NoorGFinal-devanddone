@@ -1,6 +1,6 @@
 import { connectDB } from "@/lib/db/mongodb";
 import { Collection } from "@/lib/db/models";
-import { success, error } from "@/lib/api/response";
+import { successAdmin, error } from "@/lib/api/response";
 import { requireAdmin } from "@/lib/auth-server";
 import { collectionUpdateSchema } from "@/lib/validations";
 import { slugify } from "@/lib/utils";
@@ -34,7 +34,7 @@ export async function GET(
 
     const doc = collection as unknown as CollectionDoc;
     const productIds = (doc.productIds ?? []).map((id) => id.toString());
-    return success({
+    return successAdmin({
       id: doc._id.toString(),
       name: doc.name,
       slug: doc.slug,
@@ -98,7 +98,7 @@ export async function PATCH(
 
     const doc = collection as unknown as CollectionDoc;
     const productIds = (doc.productIds ?? []).map((id) => id.toString());
-    return success({
+    return successAdmin({
       id: doc._id.toString(),
       name: doc.name,
       slug: doc.slug,
@@ -129,7 +129,7 @@ export async function DELETE(
     await connectDB();
     const collection = await Collection.findByIdAndDelete(id);
     if (!collection) return error("Not found", 404);
-    return success({ deleted: true });
+    return successAdmin({ deleted: true });
   } catch (e) {
     console.error("[api/admin/collections/[id]] DELETE:", e);
     return error("Failed to delete collection", 500);

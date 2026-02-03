@@ -1,6 +1,6 @@
 import { connectDB } from "@/lib/db/mongodb";
 import { Payment, Order } from "@/lib/db/models";
-import { success, error } from "@/lib/api/response";
+import { successAdmin, error } from "@/lib/api/response";
 import { requireAdmin } from "@/lib/auth-server";
 import mongoose from "mongoose";
 
@@ -61,7 +61,7 @@ export async function GET(request: Request) {
       };
     });
 
-    return success(list);
+    return successAdmin(list);
   } catch (e) {
     console.error("[api/admin/payments] GET:", e);
     return error("Failed to fetch payments", 500);

@@ -1,6 +1,6 @@
 import { connectDB } from "@/lib/db/mongodb";
 import { Product } from "@/lib/db/models";
-import { success, error } from "@/lib/api/response";
+import { successAdmin, error } from "@/lib/api/response";
 import { requireAdmin } from "@/lib/auth-server";
 import { PRODUCT_STATUS } from "@/lib/constants";
 import mongoose from "mongoose";
@@ -49,7 +49,7 @@ export async function GET(request: Request) {
       }
     }
 
-    return success(rows);
+    return successAdmin(rows);
   } catch (e) {
     console.error("[api/admin/inventory] GET:", e);
     return error("Failed to fetch inventory", 500);

@@ -129,6 +129,8 @@ export async function updateOrder(
   return data;
 }
 
+const STALE_TIME_ADMIN = 90 * 1000; // 90s — reduce refetches when navigating admin
+
 /** Admin: fetch all orders */
 export function useAdminOrders(
   options?: Omit<
@@ -139,6 +141,7 @@ export function useAdminOrders(
   return useQuery({
     queryKey: ordersKeys.adminList(),
     queryFn: getAdminOrders,
+    staleTime: STALE_TIME_ADMIN,
     ...options,
   });
 }

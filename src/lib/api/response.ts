@@ -5,6 +5,13 @@ export function success<T>(data: T, status = 200): NextResponse {
   return NextResponse.json({ data }, { status });
 }
 
+/** Admin success: same as success but with Cache-Control: private, no-store for fresh data. */
+export function successAdmin<T>(data: T, status = 200): NextResponse {
+  const res = NextResponse.json({ data }, { status });
+  res.headers.set("Cache-Control", "private, no-store");
+  return res;
+}
+
 /** Error response: { error: message } */
 export function error(message: string, status = 400): NextResponse {
   return NextResponse.json({ error: message }, { status });
