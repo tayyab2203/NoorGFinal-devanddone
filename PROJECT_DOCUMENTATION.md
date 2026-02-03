@@ -223,6 +223,7 @@ NoorGByNaveed/
 
 - **Provider:** NextAuth v5, Google only; JWT session, 30-day max age.
 - **Config:** `AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`; sign-in page `/login`.
+- **Production (Vercel):** Set `NEXTAUTH_URL` to your production URL (e.g. `https://your-app.vercel.app`) so the Google callback URL is correct. In **Google Cloud Console** → Credentials → your OAuth 2.0 Client → **Authorized redirect URIs**, add exactly: `https://<your-production-domain>/api/auth/callback/google` (e.g. `https://noor-g-final-devanddone.vercel.app/api/auth/callback/google`). Without this you get **Error 400: redirect_uri_mismatch**.
 - **Callbacks:** JWT stores `id`, `role`; session exposes `user.id`, `user.role`; redirect after login to `/account` (or `callbackUrl`).
 - **Protection:** `authorized` callback redirects unauthenticated users from `/account/*` to login with `callbackUrl`.
 - **Session decryption errors:** Handled in auth route to return safe response.

@@ -16,12 +16,16 @@ import {
   X,
   ExternalLink,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useQuery } from "react-query";
 import { useOrderById } from "@/lib/api/orders";
+import { getProducts } from "@/lib/api/products";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { ROUTES, ORDER_STATUS } from "@/lib/constants";
+
+const PLACEHOLDER_IMAGE = "/placeholder.svg";
 
 const GOLD = "#C4A747";
 const CREAM = "#F5F3EE";
@@ -196,6 +200,21 @@ export default function OrderDetailPage() {
   const { data: order, isLoading } = useOrderById(id || null);
   const [copied, setCopied] = useState(false);
 
+  const productIds = useMemo(
+    () => (order?.items ? [...new Set(order.items.map((i) => i.productId))] : []),
+    [order?.items]
+  );
+  const { data: products = [] } = useQuery({
+    queryKey: ["products", "byIds", productIds],
+    queryFn: () => getProducts({ ids: productIds }),
+    enabled: productIds.length > 0,
+  });
+  const productMap = useMemo(() => {
+    const map = new Map<string, (typeof products)[0]>();
+    products.forEach((p) => map.set(p.id, p));
+    return map;
+  }, [products]);
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -347,33 +366,48 @@ export default function OrderDetailPage() {
             Order Items ({order.items.length})
           </h3>
           <div className="mt-4 space-y-4">
-            {order.items.map((item, i) => (
-              <div
-                key={i}
-                className="flex gap-4 border-b border-[#eee] pb-4 last:border-0 last:pb-0"
-              >
-                <div className="relative h-20 w-16 shrink-0 overflow-hidden rounded-lg bg-muted">
-                  <Image
-                    src="/placeholder.svg"
-                    alt="Product"
-                    fill
-                    className="object-cover"
-                    sizes="64px"
-                  />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium text-[#333333]">
-                    Item ({item.variantSKU})
+            {order.items.map((item, i) => {
+              const product = productMap.get(item.productId);
+              const firstImage = product?.images?.[0];
+              const imageUrl =
+                (firstImage && typeof firstImage === "object" && "url" in firstImage
+                  ? (firstImage as { url: string }).url
+                  : typeof firstImage === "string"
+                    ? firstImage
+                    : null) ?? PLACEHOLDER_IMAGE;
+              const productName = product?.name ?? `Item (${item.variantSKU})`;
+              return (
+                <div
+                  key={`${item.productId}-${item.variantSKU}-${i}`}
+                  className="flex gap-4 border-b border-[#eee] pb-4 last:border-0 last:pb-0"
+                >
+                  <div className="relative h-20 w-16 shrink-0 overflow-hidden rounded-lg bg-muted">
+                    <Image
+                      src={imageUrl}
+                      alt={productName}
+                      fill
+                      className="object-cover"
+                      sizes="64px"
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        if (target.src !== PLACEHOLDER_IMAGE) target.src = PLACEHOLDER_IMAGE;
+                      }}
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-[#333333]">
+                      {productName} ({item.variantSKU})
+                    </p>
+                    <p className="text-sm text-[#333333]/60">
+                      Qty: {item.quantity}
+                    </p>
+                  </div>
+                  <p className="shrink-0 font-semibold text-[#333333]">
+                    {formatPrice(item.unitPrice * item.quantity)}
                   </p>
-                  <p className="text-sm text-[#333333]/60">
-                    Qty: {item.quantity}
-                  </p>
                 </div>
-                <p className="shrink-0 font-semibold text-[#333333]">
-                  {formatPrice(item.unitPrice * item.quantity)}
-                </p>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Totals */}

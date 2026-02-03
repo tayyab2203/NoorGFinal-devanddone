@@ -11,8 +11,8 @@ import { Container } from "./Container";
 const FOOTER_LINKS = {
   aboutUs: [
     { label: "Our Story", href: ROUTES.about },
-    { label: "Sustainability", href: "/sustainability" },
-    { label: "Careers", href: "/careers" },
+    { label: "Sustainability", href: ROUTES.about },
+    { label: "Careers", href: ROUTES.about },
   ],
   quickLinks: [
     { label: "Shop", href: ROUTES.shop },
@@ -22,9 +22,9 @@ const FOOTER_LINKS = {
   ],
   customerService: [
     { label: "Contact Us", href: ROUTES.contact },
-    { label: "Shipping & Returns", href: "/shipping" },
-    { label: "Size Guide", href: "/size-guide" },
-    { label: "FAQs", href: "/faq" },
+    { label: "Shipping & Returns", href: ROUTES.contact },
+    { label: "Size Guide", href: ROUTES.contact },
+    { label: "FAQs", href: ROUTES.contact },
   ],
   contact: [
     { label: "Email", href: "mailto:hello@noor-g.com", value: "hello@noor-g.com" },
