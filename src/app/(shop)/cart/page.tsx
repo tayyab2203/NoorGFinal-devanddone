@@ -443,7 +443,7 @@ export default function CartPage() {
     if (isAuthenticated) {
       updateCartItemMutation.mutate(
         { itemId, quantity: qty },
-        { onSettled: () => setTimeout(() => setUpdatingId(null), 300) }
+        { onSettled: () => { setTimeout(() => setUpdatingId(null), 300); } }
       );
     } else {
       updateQuantity(itemId, qty);
