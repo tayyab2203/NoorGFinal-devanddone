@@ -16,8 +16,10 @@ export default function AdminSettingsPage() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [emailSuccess, setEmailSuccess] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     if (session?.user?.email) setEmail(session.user.email);
@@ -25,44 +27,44 @@ export default function AdminSettingsPage() {
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setSuccessMsg(null);
-    if (!currentPassword.trim()) {
-      setError("Current password is required to change email");
-      return;
-    }
+    setEmailError(null);
+    setEmailSuccess(null);
+    setPasswordError(null);
+    setPasswordSuccess(null);
     if (!email.trim()) {
-      setError("Email is required");
+      setEmailError("Email is required");
       return;
     }
     try {
       const res = await updateProfile.mutateAsync({
         email: email.trim(),
-        currentPassword,
+        currentPassword: currentPassword.trim() || undefined,
       });
-      setSuccessMsg(res.message);
+      setEmailSuccess(res.message);
       setEmail(res.email);
       setCurrentPassword("");
       await updateSession?.({ user: { ...session?.user, email: res.email } });
     } catch (e) {
-      setError(getApiErrorMessage(e));
+      setEmailError(getApiErrorMessage(e));
     }
   };
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setSuccessMsg(null);
+    setEmailError(null);
+    setEmailSuccess(null);
+    setPasswordError(null);
+    setPasswordSuccess(null);
     if (!currentPassword.trim()) {
-      setError("Current password is required");
+      setPasswordError("Current password is required");
       return;
     }
     if (newPassword.length < 6) {
-      setError("New password must be at least 6 characters");
+      setPasswordError("New password must be at least 6 characters");
       return;
     }
     if (newPassword !== confirmPassword) {
-      setError("New passwords do not match");
+      setPasswordError("New passwords do not match");
       return;
     }
     try {
@@ -70,12 +72,12 @@ export default function AdminSettingsPage() {
         currentPassword,
         newPassword,
       });
-      setSuccessMsg(res.message);
+      setPasswordSuccess(res.message);
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
     } catch (e) {
-      setError(getApiErrorMessage(e));
+      setPasswordError(getApiErrorMessage(e));
     }
   };
 
@@ -118,7 +120,7 @@ export default function AdminSettingsPage() {
               type="password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
-              placeholder="Current password"
+              placeholder="Current password (leave blank if you sign in with Google)"
               className="max-w-xs border-[#ddd]"
               autoComplete="current-password"
             />
@@ -130,6 +132,12 @@ export default function AdminSettingsPage() {
               {updateProfile.isLoading ? "Updating…" : "Update email"}
             </Button>
           </form>
+          {emailError && (
+            <p className="mt-2 text-sm text-red-600" role="alert">{emailError}</p>
+          )}
+          {emailSuccess && (
+            <p className="mt-2 text-sm text-green-700" role="status">{emailSuccess}</p>
+          )}
         </div>
 
         {/* Change Password */}
@@ -169,13 +177,13 @@ export default function AdminSettingsPage() {
               {updateProfile.isLoading ? "Updating…" : "Update password"}
             </Button>
           </form>
+          {passwordError && (
+            <p className="mt-2 text-sm text-red-600" role="alert">{passwordError}</p>
+          )}
+          {passwordSuccess && (
+            <p className="mt-2 text-sm text-green-700" role="status">{passwordSuccess}</p>
+          )}
         </div>
-
-        {(error || successMsg) && (
-          <div className={`mt-4 rounded-lg px-4 py-3 text-sm ${error ? "border border-red-200 bg-red-50 text-red-700" : "border border-green-200 bg-green-50 text-green-700"}`}>
-            {error ?? successMsg}
-          </div>
-        )}
       </div>
 
       <div className="rounded-xl border border-[#eee] bg-white p-6">

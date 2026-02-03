@@ -54,12 +54,19 @@ export async function PATCH(request: Request) {
     if (user.role !== "ADMIN") return error("Forbidden", 403);
 
     const hashVal = (user as { passwordHash?: string | null }).passwordHash;
-    if (!hashVal) {
+
+    // Google sign-in users have no password: allow email-only update; block password change
+    if (!hashVal && wantsPasswordChange) {
       return error("Admin account uses Google sign-in; password change not available", 400);
     }
 
-    if (wantsPasswordChange) {
+    if (hashVal && wantsPasswordChange) {
       const match = await compare(currentPassword!, hashVal);
+      if (!match) return error("Current password is incorrect", 400);
+    }
+    if (hashVal && wantsEmailChange) {
+      if (!currentPassword?.trim()) return error("Current password is required to change email", 400);
+      const match = await compare(currentPassword, hashVal);
       if (!match) return error("Current password is incorrect", 400);
     }
 
@@ -72,7 +79,7 @@ export async function PATCH(request: Request) {
       user.email = newEmail!.trim().toLowerCase();
     }
 
-    if (wantsPasswordChange) {
+    if (wantsPasswordChange && hashVal) {
       (user as { passwordHash: string }).passwordHash = await hash(newPassword!, 10);
     }
 
