@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useQuery } from "react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
@@ -15,12 +16,15 @@ import {
   Filter,
 } from "lucide-react";
 import { useOrders } from "@/lib/api/orders";
+import { getProducts } from "@/lib/api/products";
 import type { OrderResponse } from "@/lib/api/orders";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatPrice } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { ROUTES, ORDER_STATUS } from "@/lib/constants";
+
+const PLACEHOLDER_IMAGE = "/placeholder.svg";
 
 const GOLD = "#C4A747";
 const ITEMS_PER_PAGE = 5;
@@ -42,8 +46,21 @@ const FILTER_OPTIONS = [
   { value: ORDER_STATUS.DELIVERED, label: "Delivered" },
 ];
 
-function getOrderImages(order: OrderResponse) {
-  return order.items.slice(0, 4).map(() => "/placeholder.svg");
+function getFirstImageUrl(product: { images?: Array<{ url?: string } | string> } | null): string {
+  if (!product?.images?.length) return PLACEHOLDER_IMAGE;
+  const first = product.images[0];
+  if (typeof first === "string") return first;
+  return (first?.url ?? PLACEHOLDER_IMAGE) || PLACEHOLDER_IMAGE;
+}
+
+function getOrderImageUrls(
+  order: OrderResponse,
+  productImageMap: Map<string, string>
+): string[] {
+  return order.items.slice(0, 4).map((item) => {
+    const url = productImageMap.get(item.productId);
+    return url ?? PLACEHOLDER_IMAGE;
+  });
 }
 
 function getProductNames(order: OrderResponse) {
@@ -83,6 +100,24 @@ export default function AccountOrdersPage() {
     const start = (page - 1) * ITEMS_PER_PAGE;
     return filtered.slice(start, start + ITEMS_PER_PAGE);
   }, [filtered, page]);
+
+  const orderProductIds = useMemo(() => {
+    const ids = new Set<string>();
+    paginated.forEach((o) => o.items.forEach((i) => ids.add(i.productId)));
+    return [...ids];
+  }, [paginated]);
+
+  const { data: orderProducts = [] } = useQuery({
+    queryKey: ["products", "orderList", orderProductIds],
+    queryFn: () => getProducts({ ids: orderProductIds }),
+    enabled: orderProductIds.length > 0,
+  });
+
+  const productImageMap = useMemo(() => {
+    const map = new Map<string, string>();
+    orderProducts.forEach((p) => map.set(p.id, getFirstImageUrl(p)));
+    return map;
+  }, [orderProducts]);
 
   if (isLoading) {
     return (
@@ -182,7 +217,7 @@ export default function AccountOrdersPage() {
             </motion.div>
           ) : (
             paginated.map((order, index) => {
-              const images = getOrderImages(order);
+              const images = getOrderImageUrls(order, productImageMap);
               const productNames = getProductNames(order);
               const itemCount = order.items.reduce((s, i) => s + i.quantity, 0);
 
@@ -241,6 +276,10 @@ export default function AccountOrdersPage() {
                                 fill
                                 className="object-cover"
                                 sizes="64px"
+                                onError={(e) => {
+                                  if (e.currentTarget.src !== PLACEHOLDER_IMAGE)
+                                    e.currentTarget.src = PLACEHOLDER_IMAGE;
+                                }}
                               />
                             </div>
                           ))}

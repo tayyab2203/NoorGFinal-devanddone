@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -15,7 +16,7 @@ import {
 import { useState } from "react";
 import { useAdminCollections } from "@/lib/api/admin";
 import { useProducts } from "@/lib/api/products";
-import { ADMIN_ROUTES, COLORS } from "@/lib/constants";
+import { ADMIN_ROUTES, COLORS, LOGO_PATH, SITE_NAME } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 const SIDEBAR_LINKS = [
@@ -113,8 +114,17 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
         )}
       >
         <div className="flex h-16 items-center justify-between border-b border-[#eee] px-4 lg:justify-center">
-          <Link href={ADMIN_ROUTES.dashboard} className="text-xl font-bold" style={{ color: COLORS.goldAccent }}>
-            NOOR-G Admin
+          <Link href={ADMIN_ROUTES.dashboard} className="flex items-center gap-2">
+            <Image
+              src={LOGO_PATH}
+              alt={SITE_NAME}
+              width={100}
+              height={32}
+              className="h-8 w-auto object-contain"
+              sizes="100px"
+              unoptimized={LOGO_PATH.endsWith(".svg")}
+            />
+            <span className="text-sm font-semibold text-[#333333]/80">Admin</span>
           </Link>
           <button type="button" onClick={() => setSidebarOpen(false)} className="lg:hidden rounded p-2 hover:bg-[#F5F3EE]" aria-label="Close menu">
             <Menu className="h-6 w-6" style={{ color: COLORS.primaryDark }} />

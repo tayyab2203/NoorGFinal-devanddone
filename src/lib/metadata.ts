@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
-import { SITE_NAME, SITE_DESCRIPTION } from "./constants";
+import { SITE_NAME, SITE_DESCRIPTION, LOGO_PATH } from "./constants";
 
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://noor-g.com";
 
 export function siteMetadata(overrides?: Partial<Metadata>): Metadata {
   return {
     metadataBase: new URL(baseUrl),
+    icons: {
+      icon: LOGO_PATH,
+      apple: LOGO_PATH,
+    },
     title: {
       default: `${SITE_NAME} | Premium Clothing`,
       template: `%s | ${SITE_NAME}`,

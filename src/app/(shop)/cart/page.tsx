@@ -243,7 +243,7 @@ function OrderSummary({
   promoError: string | null;
 }) {
   const [code, setCode] = useState("");
-  const shippingFree = subtotal >= 5000; // Free shipping over $50
+  const shippingFree = subtotal >= 5000; // Free shipping over Rs. 5,000
   const shipping = shippingFree ? 0 : 500;
   const total = subtotal - promoDiscount + shipping;
 

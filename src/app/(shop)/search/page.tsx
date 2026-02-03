@@ -23,7 +23,7 @@ import {
 import { DEFAULT_FILTERS, type ProductFiltersState } from "@/components/product/ProductFilters";
 import { filterProducts, sortProducts } from "@/lib/productFilters";
 import { ROUTES } from "@/lib/constants";
-import { MOCK_COLLECTIONS } from "@/lib/mockData";
+import { useCollections } from "@/lib/api/products";
 import { cn } from "@/lib/utils";
 import type { SortValue } from "@/components/product/ProductSort";
 import type { Product } from "@/types";
@@ -160,6 +160,7 @@ export default function SearchPage() {
     queryFn: () => fetchSearchResults(q),
     enabled: q.trim().length > 0,
   });
+  const { data: collections = [] } = useCollections();
 
   useEffect(() => {
     if (q.trim()) addRecentSearch(q.trim());
@@ -396,7 +397,7 @@ export default function SearchPage() {
               Browse categories instead
             </p>
             <div className="mt-3 flex flex-wrap justify-center gap-2">
-              {MOCK_COLLECTIONS.slice(0, 5).map((c) => (
+              {collections.slice(0, 5).map((c) => (
                 <Link
                   key={c.id}
                   href={`${ROUTES.collections}/${c.slug}`}

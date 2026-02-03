@@ -6,6 +6,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { Container } from "@/components/layout/Container";
+import { LOGO_PATH, SITE_NAME } from "@/lib/constants";
 
 const CREAM = "#F5F3EE";
 
@@ -15,18 +16,26 @@ export default function AboutPage() {
       {/* Hero */}
       <section className="relative h-[50vh] min-h-[320px] w-full overflow-hidden bg-[#333333]">
         <Image
-          src="/noor-logo.jpeg"
-          alt="NOOR-G brand"
+          src={LOGO_PATH}
+          alt={`${SITE_NAME} brand`}
           fill
           className="object-cover opacity-80"
           priority
           sizes="100vw"
+          unoptimized={LOGO_PATH.endsWith(".svg")}
         />
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#333333]/50 px-4 text-center text-white">
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
-            NOOR-G
-          </h1>
-          <p className="mt-2 text-lg text-white/90 sm:text-xl">
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 bg-[#333333]/50 px-4 text-center text-white">
+          <Image
+            src={LOGO_PATH}
+            alt={SITE_NAME}
+            width={200}
+            height={80}
+            className="h-20 w-auto object-contain sm:h-24 md:h-28"
+            priority
+            sizes="200px"
+            unoptimized={LOGO_PATH.endsWith(".svg")}
+          />
+          <p className="text-lg text-white/90 sm:text-xl">
             Premium clothing for the modern wardrobe
           </p>
         </div>

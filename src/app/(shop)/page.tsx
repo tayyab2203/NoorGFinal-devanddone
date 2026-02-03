@@ -11,6 +11,7 @@ import { ProductCard } from "@/components/product/ProductCard";
 import { useQuery } from "react-query";
 import { Container } from "@/components/layout/Container";
 import { ROUTES } from "@/lib/constants";
+import { useCollections } from "@/lib/api/products";
 import type { Product } from "@/types";
 
 const HERO_IMAGE = "/hero-banner.jpg";
@@ -18,13 +19,6 @@ const GOLD = "#C4A747";
 const CREAM = "#F5F3EE";
 const DARK = "#333333";
 
-const FEATURED_COLLECTIONS = [
-  { slug: "lawn", name: "Lawn", description: "Light, breathable lawn for summer.", image: "/product-1.jpg" },
-  { slug: "cotton", name: "Cotton", description: "Pure cotton essentials.", image: "/product-3.jpg" },
-  { slug: "linen", name: "Linen", description: "Natural linen for everyday elegance.", image: "/hero-banner12.jpg" },
-  { slug: "festive", name: "Festive", description: "Celebration-ready silhouettes.", image: "/pro2.jpg" },
-  { slug: "ready-to-wear", name: "Ready-to-Wear", description: "Effortless everyday wear.", image: "/pro1.jpg" },
-];
 
 const TESTIMONIALS = [
   { id: 1, name: "Sarah K.", city: "Lahore", rating: 5, text: "The quality is exceptional. I ordered the lawn collection and the fabric is so soft. Will definitely order again." },
@@ -60,7 +54,9 @@ export default function HomePage() {
   const [testimonialIndex, setTestimonialIndex] = useState(0);
 
   const { data: products = [] } = useQuery({ queryKey: ["products"], queryFn: fetchProducts });
+  const { data: collections = [] } = useCollections();
   const bestsellers = products.slice(0, 4);
+  const featuredCollections = collections.slice(0, 6);
 
   useEffect(() => {
     const t = setInterval(() => {
@@ -185,6 +181,7 @@ export default function HomePage() {
       </section>
 
       {/* 2. FEATURED COLLECTIONS - Grid Excellence */}
+      {featuredCollections.length > 0 && (
       <section className="py-12 md:py-16 lg:py-24">
         <Container>
           <motion.h2
@@ -194,7 +191,7 @@ export default function HomePage() {
             Featured Collections
           </motion.h2>
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:gap-6 lg:grid-cols-3 lg:gap-8">
-            {FEATURED_COLLECTIONS.map((col, i) => (
+            {featuredCollections.map((col, i) => (
               <motion.div
                 key={col.slug}
                 initial={{ opacity: 0, y: 24 }}
@@ -203,10 +200,10 @@ export default function HomePage() {
                 transition={{ duration: 0.4, delay: i * 0.06 }}
                 className="group relative h-[400px] overflow-hidden rounded-2xl md:aspect-[4/5] md:h-auto"
               >
-                <Link href={`${ROUTES.collections}?c=${col.slug}`} className="block h-full">
+                <Link href={`${ROUTES.collections}/${col.slug}`} className="block h-full">
                   <div className="relative h-full overflow-hidden rounded-2xl">
                     <Image
-                      src={col.image}
+                      src={col.image || "/placeholder.svg"}
                       alt={col.name}
                       fill
                       className="object-cover transition-transform duration-500 group-hover:scale-105"
@@ -240,6 +237,7 @@ export default function HomePage() {
           </div>
         </Container>
       </section>
+      )}
 
       {/* 3. BESTSELLERS - Showcase */}
       <section className="py-12 md:py-16 lg:py-24" style={{ backgroundColor: CREAM }}>

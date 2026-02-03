@@ -5,6 +5,9 @@
 export const SITE_NAME = "NOOR-G";
 export const SITE_DESCRIPTION = "Premium clothing brand - NOOR-G";
 
+/** Logo image path — replace public/noor-logo.jpeg with your logo file. */
+export const LOGO_PATH = "/noor-logo.png";
+
 export const ROUTES = {
   home: "/",
   shop: "/shop",

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { signIn, signOut } from "next-auth/react";
 import { useSession } from "next-auth/react";
@@ -8,7 +9,8 @@ import { Search, Heart, ShoppingBag, User } from "lucide-react";
 import { SearchBar } from "./SearchBar";
 import { MobileMenu } from "./MobileMenu";
 import { Container } from "./Container";
-import { ROUTES } from "@/lib/constants";
+import { ROUTES, LOGO_PATH, SITE_NAME } from "@/lib/constants";
+import { useCollections } from "@/lib/api/products";
 import { useCartStore } from "@/store/cartStore";
 import { useCart } from "@/lib/api/cart";
 import { useWishlistStore } from "@/store/wishlistStore";
@@ -25,8 +27,6 @@ import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
-  { href: ROUTES.home, label: "Home" },
-  { href: ROUTES.collections, label: "Collections" },
   { href: ROUTES.about, label: "Who We Are" },
   { href: ROUTES.contact, label: "Contact" },
 ] as const;
@@ -40,6 +40,7 @@ export function Header() {
   const wishlistCount = useWishlistStore((s) => s.productIds.length);
   const { searchOpen, setSearchOpen } = useSearchOpen();
   const [mounted, setMounted] = useState(false);
+  const { data: collections = [] } = useCollections();
 
   useEffect(() => {
     setMounted(true);
@@ -67,19 +68,89 @@ export function Header() {
         <div className="order-first lg:order-none lg:hidden">
           <MobileMenu onSearchOpen={() => setSearchOpen(true)} />
         </div>
-        {/* Logo: 24px mobile, 32px desktop */}
+        {/* Logo: icon + brand text — desktop: text revealed from behind logo on hover; mobile: text static */}
         <Link
           href={ROUTES.home}
-          className={cn(
-            "shrink-0 font-bold tracking-tight text-[#C4A747]",
-            "text-2xl lg:text-[32px] lg:leading-none"
-          )}
+          className="group relative flex shrink-0 items-center gap-3 lg:gap-0"
+          aria-label={`${SITE_NAME} home`}
         >
-          NOOR-G
+          {/* Logo icon: sits on top (z-10), shifts left ~8px on hover */}
+          <span
+            className={cn(
+              "relative z-10 shrink-0 transition-transform duration-500 ease-out",
+              "lg:group-hover:-translate-x-2"
+            )}
+          >
+            <Image
+              src={LOGO_PATH}
+              alt=""
+              width={140}
+              height={44}
+              className="h-9 w-auto shrink-0 object-contain lg:h-11"
+              priority
+              sizes="140px"
+              unoptimized={LOGO_PATH.endsWith(".svg")}
+              aria-hidden
+            />
+          </span>
+          {/* Text: desktop = appears at logo’s right edge (small slide + fade); mobile = always visible */}
+          <span
+            className={cn(
+              "relative z-0 overflow-hidden whitespace-nowrap font-semibold tracking-[0.12em] text-[#333333]",
+              "inline-block min-w-0",
+              /* Mobile: text always visible */
+              "opacity-100 translate-x-0",
+              /* Desktop: text starts at logo edge (slightly under logo), then slides 6px right + fades in */
+              "lg:min-w-[12rem] lg:opacity-0 lg:-translate-x-1.5 lg:transition-[transform,opacity] lg:duration-500 lg:ease-out lg:group-hover:translate-x-0 lg:group-hover:opacity-100"
+            )}
+          >
+            NoorG-Fabrics
+          </span>
         </Link>
 
         {/* Desktop nav (1024px+): 16px, 2rem spacing */}
         <nav className="hidden items-center gap-8 lg:flex">
+          <Link
+            href={ROUTES.home}
+            className="text-base font-medium text-[#333333] transition-colors hover:text-[#C4A747]"
+          >
+            Home
+          </Link>
+          {/* Collections: hover dropdown */}
+          <div className="group relative">
+            <Link
+              href={ROUTES.collections}
+              className="inline-flex items-center text-base font-medium text-[#333333] transition-colors hover:text-[#C4A747]"
+            >
+              Collections
+            </Link>
+            <div
+              className="invisible absolute left-0 top-full z-50 pt-1 opacity-0 transition-[visibility,opacity] duration-150 group-hover:visible group-hover:opacity-100"
+              aria-hidden
+            >
+              <div className="min-w-[200px] rounded-lg border border-[#eee] bg-white py-2 shadow-lg">
+              {collections.map((c) => (
+                <Link
+                  key={c.id}
+                  href={`${ROUTES.collections}/${c.slug}`}
+                  className={cn(
+                    "block px-4 py-2.5 text-sm font-medium text-[#333333] transition-colors hover:bg-[#F5F3EE] hover:text-[#C4A747]",
+                    pathname === `${ROUTES.collections}/${c.slug}` && "bg-[#F5F3EE] text-[#C4A747]"
+                  )}
+                >
+                  {c.name}
+                </Link>
+              ))}
+              {collections.length > 0 && <div className="my-1 border-t border-[#eee]" />}
+              <Link
+                href={ROUTES.collections}
+                className="block px-4 py-2.5 text-sm font-medium text-[#C4A747] hover:bg-[#F5F3EE]"
+              >
+                View all collections
+              </Link>
+              </div>
+            </div>
+          </div>
           {NAV_LINKS.map(({ href, label }) => (
             <Link
               key={href}

@@ -1,11 +1,9 @@
 "use client";
 
-import { useQuery } from "react-query";
 import { useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { X, PackageOpen, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, PackageOpen, ChevronLeft } from "lucide-react";
 import { ProductGrid } from "@/components/product/ProductGrid";
 import {
   CollectionFilters,
@@ -18,18 +16,10 @@ import { ROUTES } from "@/lib/constants";
 import { formatPrice } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import type { SortValue } from "@/components/product/ProductSort";
-import type { Product } from "@/types";
-import type { CollectionWithProducts } from "@/app/api/collections/[slug]/route";
-import { MOCK_COLLECTIONS } from "@/lib/mockData";
+import { useCollectionBySlug, useCollections } from "@/lib/api/products";
 
 const ITEMS_PER_PAGE = 12;
 const GOLD = "#C4A747";
-
-async function fetchCollection(slug: string): Promise<CollectionWithProducts> {
-  const res = await fetch(`/api/collections/${slug}`);
-  if (!res.ok) throw new Error("Collection not found");
-  return res.json();
-}
 
 function ActiveFilterChips({
   filters,
@@ -116,11 +106,12 @@ export default function CollectionSlugPage() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [page, setPage] = useState(1);
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["collection", slug],
-    queryFn: () => fetchCollection(slug),
-    enabled: !!slug,
-  });
+  const { data, isLoading, error } = useCollectionBySlug(slug);
+  const { data: allCollections = [] } = useCollections();
+  const otherCollections = useMemo(
+    () => allCollections.filter((c) => c.slug !== slug).slice(0, 4),
+    [allCollections, slug]
+  );
 
   const filteredAndSorted = useMemo(() => {
     if (!data?.products) return [];
@@ -163,7 +154,7 @@ export default function CollectionSlugPage() {
     );
   }
 
-  if (error || !data) {
+  if (error || (!data && !isLoading)) {
     return (
       <div className="space-y-6">
         <Link
@@ -190,7 +181,6 @@ export default function CollectionSlugPage() {
   }
 
   const { collection, products } = data;
-  const collMeta = MOCK_COLLECTIONS.find((c) => c.slug === slug);
 
   return (
     <div className="flex flex-col gap-8 lg:flex-row lg:gap-12">
@@ -280,10 +270,9 @@ export default function CollectionSlugPage() {
             >
               Clear Filters
             </button>
-            <div className="mt-8 flex flex-wrap justify-center gap-3">
-              {MOCK_COLLECTIONS.filter((c) => c.slug !== slug)
-                .slice(0, 4)
-                .map((c) => (
+            {otherCollections.length > 0 && (
+              <div className="mt-8 flex flex-wrap justify-center gap-3">
+                {otherCollections.map((c) => (
                   <Link
                     key={c.id}
                     href={`${ROUTES.collections}/${c.slug}`}
@@ -292,7 +281,8 @@ export default function CollectionSlugPage() {
                     {c.name}
                   </Link>
                 ))}
-            </div>
+              </div>
+            )}
           </div>
         ) : (
           <>

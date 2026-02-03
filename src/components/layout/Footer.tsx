@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { Facebook, Instagram, Twitter } from "lucide-react";
-import { ROUTES } from "@/lib/constants";
+import { ROUTES, LOGO_PATH, SITE_NAME } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Container } from "./Container";
@@ -69,7 +70,7 @@ export function Footer() {
             </h3>
             <ul className="space-y-1">
               {FOOTER_LINKS.aboutUs.map(({ label, href }) => (
-                <li key={href}>
+                <li key={label}>
                   <Link href={href} className={linkClass}>
                     {label}
                   </Link>
@@ -84,7 +85,7 @@ export function Footer() {
             </h3>
             <ul className="space-y-1">
               {FOOTER_LINKS.quickLinks.map(({ label, href }) => (
-                <li key={href}>
+                <li key={label}>
                   <Link href={href} className={linkClass}>
                     {label}
                   </Link>
@@ -99,7 +100,7 @@ export function Footer() {
             </h3>
             <ul className="space-y-1">
               {FOOTER_LINKS.customerService.map(({ label, href }) => (
-                <li key={href}>
+                <li key={label}>
                   <Link href={href} className={linkClass}>
                     {label}
                   </Link>
@@ -172,8 +173,19 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 border-t border-transparent pt-6 text-center text-sm text-white/60">
-          <span suppressHydrationWarning>© {new Date().getFullYear()} NOOR-G. All rights reserved.</span>
+        <div className="mt-10 flex flex-col items-center gap-4 border-t border-white/10 pt-6 text-center text-sm text-white/60">
+          <Link href={ROUTES.home} className="block">
+            <Image
+              src={LOGO_PATH}
+              alt={SITE_NAME}
+              width={100}
+              height={32}
+              className="h-8 w-auto object-contain opacity-90"
+              sizes="100px"
+              unoptimized={LOGO_PATH.endsWith(".svg")}
+            />
+          </Link>
+          <span suppressHydrationWarning>© {new Date().getFullYear()} {SITE_NAME}. All rights reserved.</span>
         </div>
       </Container>
     </footer>

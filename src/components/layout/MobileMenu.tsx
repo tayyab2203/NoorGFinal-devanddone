@@ -30,7 +30,7 @@ import { ROUTES } from "@/lib/constants";
 import { useWishlistStore } from "@/store/wishlistStore";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { cn } from "@/lib/utils";
-import { MOCK_COLLECTIONS } from "@/lib/mockData";
+import { useCollections } from "@/lib/api/products";
 
 const GOLD = "#C4A747";
 const CREAM = "#F5F3EE";
@@ -47,6 +47,7 @@ export function MobileMenu({ onSearchOpen }: MobileMenuProps) {
   const [showCollections, setShowCollections] = useState(false);
   const [mounted, setMounted] = useState(false);
   const isMobile = useMediaQuery("(max-width: 1023px)");
+  const { data: collections = [] } = useCollections();
 
   useEffect(() => {
     setMounted(true);
@@ -273,7 +274,7 @@ export function MobileMenu({ onSearchOpen }: MobileMenuProps) {
                         Collections
                       </button>
                       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain py-2" style={{ WebkitOverflowScrolling: "touch" } as React.CSSProperties}>
-                        {MOCK_COLLECTIONS.map((c, i) => (
+                        {collections.map((c, i) => (
                           <motion.div
                             key={c.id}
                             initial={{ opacity: 0, x: -10 }}

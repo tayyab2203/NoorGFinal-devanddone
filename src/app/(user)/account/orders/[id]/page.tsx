@@ -85,17 +85,20 @@ function ProgressTimeline({
             const Icon = step.icon;
 
             return (
-              <div key={step.key} className="flex flex-1 flex-col items-center">
-                {/* Line before */}
+              <div
+                key={step.key}
+                className="relative flex flex-1 flex-col items-center"
+              >
+                {/* Connector line: left half of this column only (so it doesn't escape) */}
                 {i > 0 && (
                   <div
                     className={cn(
-                      "absolute left-0 top-1/2 h-1 w-full -translate-y-1/2",
+                      "absolute left-0 top-6 h-0.5 w-1/2 -translate-y-1/2",
                       status === "complete" || status === "active"
                         ? "bg-[#C4A747]"
                         : "bg-[#ddd]"
                     )}
-                    style={{ width: "calc(100% - 48px)", left: "-50%" }}
+                    aria-hidden
                   />
                 )}
 
