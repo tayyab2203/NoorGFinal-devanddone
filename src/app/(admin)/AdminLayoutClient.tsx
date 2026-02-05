@@ -12,8 +12,10 @@ import {
   PackageCheck,
   CreditCard,
   Settings,
+  LogOut,
 } from "lucide-react";
 import { useState } from "react";
+import { signOut } from "next-auth/react";
 import { useAdminCollections } from "@/lib/api/admin";
 import { useProducts } from "@/lib/api/products";
 import { ADMIN_ROUTES, COLORS, LOGO_PATH, SITE_NAME } from "@/lib/constants";
@@ -119,11 +121,11 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
     <div className="min-h-screen flex flex-col lg:flex-row" style={{ backgroundColor: COLORS.cream }}>
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 w-64 transform border-r border-[#eee] transition-transform duration-200 ease-in-out lg:static lg:translate-x-0 bg-white",
+          "fixed inset-y-0 left-0 z-40 w-64 transform border-r border-[#eee] transition-transform duration-200 ease-in-out lg:static lg:translate-x-0 bg-white flex flex-col",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="flex h-16 items-center justify-between border-b border-[#eee] px-4 lg:justify-center">
+        <div className="flex h-16 items-center justify-between border-b border-[#eee] px-4 lg:justify-center shrink-0">
           <Link href={ADMIN_ROUTES.dashboard} className="flex items-center gap-2">
             <Image
               src={LOGO_PATH}
@@ -140,22 +142,42 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
             <Menu className="h-6 w-6" style={{ color: COLORS.primaryDark }} />
           </button>
         </div>
-        <nav className="p-4 space-y-1">
-          {SIDEBAR_LINKS.map(({ href, label, icon: Icon }) => {
-            const isActive = href === pathname || (href !== ADMIN_ROUTES.dashboard && pathname.startsWith(href));
-            return (
-              <Link
-                key={href}
-                href={href}
-                onClick={() => setSidebarOpen(false)}
-                className={cn("flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition", isActive ? "bg-[#F5F3EE]" : "hover:bg-[#F5F3EE]/70")}
-                style={{ color: isActive ? COLORS.goldAccent : COLORS.primaryDark }}
-              >
-                <Icon className="h-5 w-5 shrink-0" />
-                {label}
-              </Link>
-            );
-          })}
+        <nav className="flex flex-col flex-1 p-4 space-y-1 overflow-y-auto">
+          <div className="space-y-1">
+            {SIDEBAR_LINKS.map(({ href, label, icon: Icon }) => {
+              const isActive = href === pathname || (href !== ADMIN_ROUTES.dashboard && pathname.startsWith(href));
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={() => setSidebarOpen(false)}
+                  className={cn("flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition", isActive ? "bg-[#F5F3EE]" : "hover:bg-[#F5F3EE]/70")}
+                  style={{ color: isActive ? COLORS.goldAccent : COLORS.primaryDark }}
+                >
+                  <Icon className="h-5 w-5 shrink-0" />
+                  {label}
+                </Link>
+              );
+            })}
+          </div>
+          {/* Logout button */}
+          <div className="mt-auto border-t border-[#eee] pt-4 shrink-0">
+            <button
+              type="button"
+              onClick={() => {
+                setSidebarOpen(false);
+                signOut({ callbackUrl: "/admin/login" });
+              }}
+              className={cn(
+                "flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition",
+                "hover:bg-red-50",
+                "text-[#333333] hover:text-red-600"
+              )}
+            >
+              <LogOut className="h-5 w-5 shrink-0" />
+              Logout
+            </button>
+          </div>
         </nav>
       </aside>
       {sidebarOpen && (

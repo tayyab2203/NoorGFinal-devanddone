@@ -2,9 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "@/styles/globals.css";
 import { Providers } from "@/components/shared/Providers";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
-import { BottomNav } from "@/components/layout/BottomNav";
+import { StoreShell } from "@/components/layout/StoreShell";
 import { siteMetadata, baseUrl } from "@/lib/metadata";
 import { SITE_NAME, SITE_DESCRIPTION, LOGO_PATH } from "@/lib/constants";
 
@@ -52,16 +50,7 @@ export default function RootLayout({
             Skip to main content
           </a>
           <div className="flex min-h-screen flex-col bg-cream">
-            <Header />
-            <main
-              id="main-content"
-              className="flex-1 pb-20 md:pb-0"
-              role="main"
-            >
-              {children}
-            </main>
-            <Footer />
-            <BottomNav />
+            <StoreShell>{children}</StoreShell>
           </div>
         </Providers>
       </body>

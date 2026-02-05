@@ -185,7 +185,15 @@ export function Footer() {
               unoptimized={LOGO_PATH.endsWith(".svg")}
             />
           </Link>
-          <span suppressHydrationWarning>© {new Date().getFullYear()} {SITE_NAME}. All rights reserved.</span>
+          <div className="flex flex-col items-center gap-2">
+            <span suppressHydrationWarning>© {new Date().getFullYear()} {SITE_NAME}. All rights reserved.</span>
+            <Link 
+              href="/admin/login" 
+              className="text-xs text-white/40 transition-colors hover:text-white/60"
+            >
+              Admin Login
+            </Link>
+          </div>
         </div>
       </Container>
     </footer>

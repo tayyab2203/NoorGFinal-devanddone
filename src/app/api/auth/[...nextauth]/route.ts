@@ -13,21 +13,39 @@ function isSessionDecryptionError(err: unknown): boolean {
 
 export async function GET(
   request: NextRequest,
-  _context: { params: Promise<{ nextauth: string[] }> }
+  context: { params: Promise<{ nextauth: string[] }> }
 ) {
   try {
+    // Await params for Next.js 15+ compatibility (even if not used)
+    await context.params;
     return await handlers.GET(request);
   } catch (err) {
     if (isSessionDecryptionError(err)) {
       return NextResponse.json({ user: null, expires: null });
     }
-    throw err;
+    // Log error for debugging but return JSON to avoid HTML error pages
+    console.error("[NextAuth] GET error:", err);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
 
 export async function POST(
   request: NextRequest,
-  _context: { params: Promise<{ nextauth: string[] }> }
+  context: { params: Promise<{ nextauth: string[] }> }
 ) {
-  return handlers.POST(request);
+  try {
+    // Await params for Next.js 15+ compatibility (even if not used)
+    await context.params;
+    return await handlers.POST(request);
+  } catch (err) {
+    // Log error for debugging but return JSON to avoid HTML error pages
+    console.error("[NextAuth] POST error:", err);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
 }
